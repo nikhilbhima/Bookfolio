@@ -21,6 +21,9 @@ export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient();
 
+    console.log('[USERNAME CHECK] Checking username:', username);
+    console.log('[USERNAME CHECK] Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
+
     // Check if username exists (case-insensitive)
     const { data, error } = await supabase
       .from('profiles')
@@ -28,16 +31,27 @@ export async function GET(request: NextRequest) {
       .ilike('username', username)
       .maybeSingle();
 
+    console.log('[USERNAME CHECK] Query result - data:', data, 'error:', error);
+
     if (error) {
-      console.error('Error checking username:', error);
-      return NextResponse.json({ error: 'Failed to check username availability' }, { status: 500 });
+      console.error('[USERNAME CHECK] Database error:', JSON.stringify(error));
+      return NextResponse.json({
+        available: false,
+        error: 'Failed to check username availability',
+        debug: error.message
+      }, { status: 500 });
     }
 
     const available = !data;
+    console.log('[USERNAME CHECK] Username available:', available);
 
     return NextResponse.json({ available, username: username.toLowerCase() });
   } catch (error) {
-    console.error('Username check error:', error);
-    return NextResponse.json({ error: 'Failed to check username' }, { status: 500 });
+    console.error('[USERNAME CHECK] Unexpected error:', error);
+    return NextResponse.json({
+      available: false,
+      error: 'Failed to check username',
+      debug: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
   }
 }
