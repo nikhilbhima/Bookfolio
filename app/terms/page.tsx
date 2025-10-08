@@ -36,7 +36,7 @@ export default function TermsPage() {
             <p>You may use Bookfolio to:</p>
             <ul className="list-disc pl-6 space-y-2">
               <li>Create and maintain a personal digital bookshelf</li>
-              <li>Track books you've read, are reading, or want to read</li>
+              <li>Track books you&apos;ve read, are reading, or want to read</li>
               <li>Share your reading journey via your public profile</li>
               <li>Rate and review books</li>
             </ul>
