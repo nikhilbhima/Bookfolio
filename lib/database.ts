@@ -187,10 +187,13 @@ export async function createBook(book: Omit<Book, 'id'>, userId?: string) {
   if (!userId) {
     userId = await getCurrentUserId() || undefined;
     if (!userId) {
-      console.error('No user ID provided and no authenticated user');
+      console.error('[CREATE BOOK] No user ID - user not authenticated');
       return null;
     }
   }
+
+  console.log('[CREATE BOOK] Adding book:', { title: book.title, userId });
+
   const { data, error } = await supabase
     .from('books')
     .insert({
@@ -208,9 +211,11 @@ export async function createBook(book: Omit<Book, 'id'>, userId?: string) {
     .single();
 
   if (error) {
-    console.error('Error creating book:', error);
+    console.error('[CREATE BOOK] Error:', error);
     return null;
   }
+
+  console.log('[CREATE BOOK] Success! Book ID:', data.id);
 
   return {
     id: data.id,
