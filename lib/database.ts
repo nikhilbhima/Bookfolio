@@ -205,7 +205,7 @@ export async function createBook(book: Omit<Book, 'id'>, userId?: string) {
       rating: book.rating,
       status: book.status,
       notes: book.notes,
-      custom_order: book.customOrder || 0,
+      // Don't include custom_order - column doesn't exist in Supabase yet
     })
     .select()
     .single();
@@ -231,18 +231,20 @@ export async function createBook(book: Omit<Book, 'id'>, userId?: string) {
 }
 
 export async function updateBook(id: string, updates: Partial<Book>) {
+  // Build update object without undefined values
+  const updateData: any = {};
+  if (updates.title !== undefined) updateData.title = updates.title;
+  if (updates.author !== undefined) updateData.author = updates.author;
+  if (updates.cover !== undefined) updateData.cover = updates.cover;
+  if (updates.genre !== undefined) updateData.genre = updates.genre;
+  if (updates.rating !== undefined) updateData.rating = updates.rating;
+  if (updates.status !== undefined) updateData.status = updates.status;
+  if (updates.notes !== undefined) updateData.notes = updates.notes;
+  // Skip custom_order since column doesn't exist yet
+
   const { data, error } = await supabase
     .from('books')
-    .update({
-      title: updates.title,
-      author: updates.author,
-      cover: updates.cover,
-      genre: updates.genre,
-      rating: updates.rating,
-      status: updates.status,
-      notes: updates.notes,
-      custom_order: updates.customOrder,
-    })
+    .update(updateData)
     .eq('id', id)
     .select()
     .single();
