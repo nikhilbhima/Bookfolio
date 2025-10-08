@@ -26,10 +26,9 @@ export async function GET(request: NextRequest) {
       .from('profiles')
       .select('username')
       .ilike('username', username)
-      .single();
+      .maybeSingle();
 
-    if (error && error.code !== 'PGRST116') {
-      // PGRST116 = no rows found (username is available)
+    if (error) {
       console.error('Error checking username:', error);
       return NextResponse.json({ error: 'Failed to check username availability' }, { status: 500 });
     }
