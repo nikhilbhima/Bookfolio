@@ -144,26 +144,13 @@ export async function getBooks(userId?: string) {
       return [];
     }
   }
-  // Try to fetch with custom_order first
-  let { data, error } = await supabase
+
+  // Fetch books ordered by created_at (custom_order column doesn't exist yet)
+  const { data, error } = await supabase
     .from('books')
     .select('*')
     .eq('user_id', userId)
-    .order('custom_order', { ascending: true })
     .order('created_at', { ascending: false });
-
-  // If custom_order column doesn't exist yet, fallback to created_at only
-  if (error && error.message?.includes('custom_order')) {
-    console.warn('custom_order column not found, using created_at for ordering. Please run the database migration.');
-    const fallback = await supabase
-      .from('books')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
-
-    data = fallback.data;
-    error = fallback.error;
-  }
 
   if (error || !data) {
     console.error('Error fetching books:', error);
@@ -179,7 +166,7 @@ export async function getBooks(userId?: string) {
     status: book.status as 'reading' | 'completed' | 'to-read',
     notes: book.notes,
     genre: book.genre,
-    customOrder: book.custom_order || 0,
+    customOrder: 0, // Default value since column doesn't exist
   })) as Book[];
 }
 
@@ -282,28 +269,9 @@ export async function deleteBook(id: string) {
 }
 
 // Bulk update book orders for drag-and-drop
+// NOTE: custom_order column doesn't exist yet, so this function is a no-op for now
 export async function updateBooksOrder(books: Array<{ id: string; customOrder: number }>, userId?: string) {
-  if (!userId) {
-    userId = await getCurrentUserId() || undefined;
-    if (!userId) {
-      console.error('No user ID provided and no authenticated user');
-      return false;
-    }
-  }
-  try {
-    // Update each book's custom_order
-    const updates = books.map(({ id, customOrder }) =>
-      supabase
-        .from('books')
-        .update({ custom_order: customOrder })
-        .eq('id', id)
-        .eq('user_id', userId)
-    );
-
-    await Promise.all(updates);
-    return true;
-  } catch (error) {
-    console.error('Error updating book order:', error);
-    return false;
-  }
+  console.log('[UPDATE BOOKS ORDER] Skipping - custom_order column not available yet');
+  // Will implement this once custom_order column is added to the database
+  return true;
 }
