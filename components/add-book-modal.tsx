@@ -75,7 +75,7 @@ export function AddBookModal({ isOpen, onClose, bookToEdit }: AddBookModalProps)
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (bookToEdit) {
@@ -89,7 +89,7 @@ export function AddBookModal({ isOpen, onClose, bookToEdit }: AddBookModalProps)
         status: formData.status || "to-read",
         notes: formData.notes,
       };
-      updateBook(bookToEdit.id, bookData);
+      await updateBook(bookToEdit.id, bookData);
     } else {
       const bookData: Omit<Book, 'id'> = {
         title: formData.title || "",
@@ -100,7 +100,7 @@ export function AddBookModal({ isOpen, onClose, bookToEdit }: AddBookModalProps)
         status: formData.status || "to-read",
         notes: formData.notes,
       };
-      addBook(bookData);
+      await addBook(bookData);
     }
 
     // Reset form
