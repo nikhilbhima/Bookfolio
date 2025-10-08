@@ -43,12 +43,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(redirectUrl)
   }
 
-  // Redirect to dashboard if accessing auth pages or home while logged in
+  // Redirect to dashboard if accessing auth pages while logged in
   const authRoutes = ['/login', '/signup']
   const isAuthRoute = authRoutes.some(route => request.nextUrl.pathname.startsWith(route))
-  const isHomePage = request.nextUrl.pathname === '/'
 
-  if ((isAuthRoute || isHomePage) && user) {
+  if (isAuthRoute && user) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 

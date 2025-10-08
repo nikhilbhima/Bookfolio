@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase-server';
+import { createClient as createServerClient } from '@/lib/supabase-server';
+import { createClient } from '@supabase/supabase-js';
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,21 +13,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const supabase = await createClient();
-
     // Check if identifier is an email
     const isEmail = identifier.includes('@');
-
     let email = identifier;
 
     // If it's a username, get the associated email
     if (!isEmail) {
+      // Use service role client for username lookup
+      const adminClient = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!,
+        {
+          auth: {
+            autoRefreshToken: false,
+            persistSession: false
+          }
+        }
+      )
+
       // Get user_id from username
-      const { data: profile, error: profileError } = await supabase
+      const { data: profile, error: profileError } = await adminClient
         .from('profiles')
         .select('user_id')
         .ilike('username', identifier)
-        .single();
+        .maybeSingle();
 
       if (profileError || !profile) {
         return NextResponse.json(
@@ -35,27 +45,21 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // Get email from user_id
-      const { data: { users }, error: usersError } = await supabase.auth.admin.listUsers();
+      // Get email from user_id using admin client
+      const { data: userData, error: userError } = await adminClient.auth.admin.getUserById(profile.user_id);
 
-      if (usersError) {
-        return NextResponse.json(
-          { error: 'Failed to retrieve user information' },
-          { status: 500 }
-        );
-      }
-
-      const user = users?.find(u => u.id === profile.user_id);
-
-      if (!user?.email) {
+      if (userError || !userData?.user?.email) {
         return NextResponse.json(
           { error: 'User email not found' },
           { status: 404 }
         );
       }
 
-      email = user.email;
+      email = userData.user.email;
     }
+
+    // Use the server client for login to set cookies properly
+    const supabase = await createServerClient();
 
     // Attempt login with email and password
     const { data, error } = await supabase.auth.signInWithPassword({

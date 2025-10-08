@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase-server';
+import { createClient as createServerClient } from '@/lib/supabase-server';
+import { createClient } from '@supabase/supabase-js';
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,14 +22,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const supabase = await createClient();
+    // Use service role client for username check and profile creation
+    const adminClient = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
+    )
 
     // Check if username is already taken
-    const { data: existingProfile } = await supabase
+    const { data: existingProfile } = await adminClient
       .from('profiles')
       .select('username')
       .ilike('username', username)
-      .single();
+      .maybeSingle();
 
     if (existingProfile) {
       return NextResponse.json(
@@ -36,6 +47,9 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Use server client for auth signup to set cookies properly
+    const supabase = await createServerClient();
 
     // Sign up the user
     const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -63,8 +77,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create profile with username
-    const { error: profileError } = await supabase
+    // Create profile with username using admin client
+    const { error: profileError } = await adminClient
       .from('profiles')
       .insert({
         user_id: authData.user.id,
