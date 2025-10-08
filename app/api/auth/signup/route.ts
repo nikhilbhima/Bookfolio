@@ -51,6 +51,12 @@ export async function POST(request: NextRequest) {
     // Use server client for auth signup to set cookies properly
     const supabase = await createServerClient();
 
+    console.log('[SIGNUP] Environment check:', {
+      hasUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+      hasAnonKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      urlPrefix: process.env.NEXT_PUBLIC_SUPABASE_URL?.substring(0, 30)
+    });
+
     // Sign up the user
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
