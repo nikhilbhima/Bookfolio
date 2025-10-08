@@ -39,3 +39,18 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Documentation (keep only essential ones)
+DATABASE_MIGRATION.md
+FIXED_AND_WORKING.md
+PHASE1_COMPLETE.md
+PHASE_5_SETUP.md
+PREVIEW_MODE_ADDED.md
+PROJECT_STRUCTURE.md
+QUICK_START.md
+
+# Archives
+*.zip
+
+# Supabase SQL files (already applied)
+supabase-*.sql

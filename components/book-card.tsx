@@ -1,0 +1,321 @@
+"use client";
+
+import { useState } from "react";
+import { Edit, Trash2, Maximize2 } from "lucide-react";
+import { Book } from "@/lib/mock-data";
+import { useBookStore } from "@/lib/store";
+import { Card } from "./ui/card";
+import { StarRating } from "./star-rating";
+import { AddBookModal } from "./add-book-modal";
+import { DeleteConfirmDialog } from "./delete-confirm-dialog";
+import { BookDetailsModal } from "./book-details-modal";
+import { Checkbox } from "./ui/checkbox";
+import Image from "next/image";
+
+interface BookCardProps {
+  book: Book;
+  view: "grid" | "list";
+  isPublic?: boolean;
+}
+
+export function BookCard({ book, view, isPublic = false }: BookCardProps) {
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  const [hoveredButton, setHoveredButton] = useState<'edit' | 'delete' | null>(null);
+  const filter = useBookStore((state) => state.filter);
+  const selectionMode = useBookStore((state) => state.selectionMode);
+  const selectedBooks = useBookStore((state) => state.selectedBooks);
+  const toggleSelection = useBookStore((state) => state.toggleSelection);
+  const setSelectionMode = useBookStore((state) => state.setSelectionMode);
+
+  const isSelected = selectedBooks.has(book.id);
+
+  const handleCheckboxClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!selectionMode) {
+      setSelectionMode(true);
+    }
+    toggleSelection(book.id);
+  };
+
+  const statusColors = {
+    reading: "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300",
+    completed: "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+    "to-read": "border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-300",
+  };
+
+  const statusLabels = {
+    reading: "Reading",
+    completed: "Completed",
+    "to-read": "To Read",
+  };
+
+  if (view === "list") {
+    return (
+      <>
+        <Card
+          className={`group relative overflow-hidden hover:shadow-md transition-all ${
+            hoveredButton === 'edit' ? 'ring-2 ring-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.3)]' :
+            hoveredButton === 'delete' ? 'ring-2 ring-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.3)]' : ''
+          }`}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => {
+            setIsHovered(false);
+            setHoveredButton(null);
+          }}
+        >
+          <div className="flex items-center gap-2 sm:gap-4 p-3 sm:p-4 cursor-pointer" onClick={(e) => {
+            // Don't open details if clicking on action buttons
+            if (!(e.target as HTMLElement).closest('button')) {
+              setIsDetailsOpen(true);
+            }
+          }}>
+            {/* Cover Image */}
+            <div className="relative w-12 h-16 sm:w-16 sm:h-24 flex-shrink-0 rounded overflow-hidden bg-muted">
+              {!imageError ? (
+                <Image
+                  src={book.cover}
+                  alt={book.title}
+                  fill
+                  className="object-cover"
+                  onError={() => setImageError(true)}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-[10px] sm:text-xs text-muted-foreground">
+                  No Cover
+                </div>
+              )}
+            </div>
+
+            {/* Book Info */}
+            <div className="flex-1 min-w-0">
+              <h3 className="font-semibold text-sm sm:text-base truncate">{book.title}</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground truncate">
+                {book.author}
+              </p>
+              {book.genre && (
+                <p className="hidden sm:block text-xs text-muted-foreground mt-0.5">
+                  {book.genre}
+                </p>
+              )}
+            </div>
+
+            {/* Rating */}
+            {book.rating > 0 && (
+              <div className="hidden sm:flex flex-shrink-0">
+                <StarRating rating={book.rating} readonly size="sm" />
+              </div>
+            )}
+
+            {/* Status Badge - Only show in "All Books" view */}
+            {filter === "all" && (
+              <div className="flex-shrink-0">
+                <span
+                  className={`px-1.5 sm:px-2.5 py-0.5 sm:py-1 text-[10px] sm:text-xs rounded-full border ${
+                    statusColors[book.status]
+                  }`}
+                >
+                  {statusLabels[book.status]}
+                </span>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            {isHovered && (
+              <div className="flex-shrink-0 flex items-center gap-1 sm:gap-2">
+                <button
+                  onClick={() => setIsEditOpen(true)}
+                  onMouseEnter={() => setHoveredButton('edit')}
+                  onMouseLeave={() => setHoveredButton(null)}
+                  className="p-1.5 sm:p-2 rounded-lg bg-blue-500/15 border border-blue-500/40 text-blue-400 hover:bg-blue-500/25 hover:border-blue-500/60 transition-all glow-blue-hover"
+                >
+                  <Edit className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                </button>
+                <button
+                  onClick={() => setIsDeleteOpen(true)}
+                  onMouseEnter={() => setHoveredButton('delete')}
+                  onMouseLeave={() => setHoveredButton(null)}
+                  className="p-1.5 sm:p-2 rounded-lg bg-red-500/15 border border-red-500/40 text-red-400 hover:bg-red-500/25 hover:border-red-500/60 transition-all"
+                >
+                  <Trash2 className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                </button>
+              </div>
+            )}
+          </div>
+        </Card>
+
+        {isDetailsOpen && (
+          <BookDetailsModal
+            key={book.id}
+            book={book}
+            isOpen={isDetailsOpen}
+            onClose={() => setIsDetailsOpen(false)}
+            onEdit={!isPublic ? () => {
+              setIsDetailsOpen(false);
+              setIsEditOpen(true);
+            } : undefined}
+            isPublic={isPublic}
+          />
+        )}
+
+        <AddBookModal
+          isOpen={isEditOpen}
+          onClose={() => setIsEditOpen(false)}
+          bookToEdit={book}
+        />
+
+        <DeleteConfirmDialog
+          isOpen={isDeleteOpen}
+          onClose={() => setIsDeleteOpen(false)}
+          bookId={book.id}
+          bookTitle={book.title}
+        />
+      </>
+    );
+  }
+
+  // Grid View
+  return (
+    <>
+      <Card
+        className={`group relative overflow-hidden hover:shadow-lg transition-all duration-300 hover:scale-105 ${
+          hoveredButton === 'edit' ? 'ring-2 ring-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.3)]' :
+          hoveredButton === 'delete' ? 'ring-2 ring-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.3)]' : ''
+        } ${isSelected ? 'ring-2 ring-blue-500' : ''}`}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => {
+          setIsHovered(false);
+          setHoveredButton(null);
+        }}
+      >
+        {/* Checkbox - Show on hover or when selection mode is active (not in public mode) */}
+        {!isPublic && (isHovered || selectionMode || isSelected) && (
+          <div
+            className="absolute top-2 left-2 z-10"
+            onClick={handleCheckboxClick}
+          >
+            <Checkbox
+              checked={isSelected}
+              className="bg-background/90 backdrop-blur-sm border-2"
+            />
+          </div>
+        )}
+
+        {/* Cover Image */}
+        <div className="relative aspect-[2/3] bg-muted cursor-pointer overflow-hidden" onClick={(e) => {
+          // Don't open details if clicking on action buttons or checkbox
+          if (!(e.target as HTMLElement).closest('button') && !(e.target as HTMLElement).closest('[role="checkbox"]')) {
+            setIsDetailsOpen(true);
+          }
+        }}>
+          {!imageError ? (
+            <Image
+              src={book.cover}
+              alt={book.title}
+              fill
+              className="object-cover"
+              onError={() => setImageError(true)}
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+              No Cover
+            </div>
+          )}
+
+          {/* Hover Overlay with Action Buttons */}
+          {isHovered && !isPublic && (
+            <div className="absolute inset-0 bg-black/60 flex items-center justify-center gap-3 transition-all">
+              <button
+                onClick={() => setIsEditOpen(true)}
+                onMouseEnter={() => setHoveredButton('edit')}
+                onMouseLeave={() => setHoveredButton(null)}
+                className="p-3 rounded-lg bg-blue-500/15 border border-blue-500/40 text-blue-400 hover:bg-blue-500/25 hover:border-blue-500/60 transition-all glow-blue-hover"
+              >
+                <Edit className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setIsDeleteOpen(true)}
+                onMouseEnter={() => setHoveredButton('delete')}
+                onMouseLeave={() => setHoveredButton(null)}
+                className="p-3 rounded-lg bg-red-500/15 border border-red-500/40 text-red-400 hover:bg-red-500/25 hover:border-red-500/60 transition-all"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+
+          {/* Public Mode - Expand Icon on Hover */}
+          {isHovered && isPublic && (
+            <div className="absolute inset-0 bg-black/60 flex items-center justify-center transition-all">
+              <div className="p-4 rounded-full bg-white/20 border border-white/40 text-white">
+                <Maximize2 className="w-6 h-6" />
+              </div>
+            </div>
+          )}
+
+          {/* Status Badge - Only show in "All Books" view */}
+          {filter === "all" && (
+            <div className="absolute top-2 right-2">
+              <span
+                className={`px-2 py-0.5 text-xs rounded-full border backdrop-blur-sm ${
+                  statusColors[book.status]
+                }`}
+              >
+                {statusLabels[book.status]}
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Book Info */}
+        <div className="p-3 cursor-pointer" onClick={(e) => {
+          if (!(e.target as HTMLElement).closest('button')) {
+            setIsDetailsOpen(true);
+          }
+        }}>
+          <h3 className="font-semibold text-sm truncate" title={book.title}>
+            {book.title}
+          </h3>
+          <p className="text-xs text-muted-foreground truncate" title={book.author}>
+            {book.author}
+          </p>
+          {book.rating > 0 && (
+            <div className="mt-2">
+              <StarRating rating={book.rating} readonly size="sm" />
+            </div>
+          )}
+        </div>
+      </Card>
+
+      {isDetailsOpen && (
+        <BookDetailsModal
+          key={book.id}
+          book={book}
+          isOpen={isDetailsOpen}
+          onClose={() => setIsDetailsOpen(false)}
+          onEdit={!isPublic ? () => {
+            setIsDetailsOpen(false);
+            setIsEditOpen(true);
+          } : undefined}
+          isPublic={isPublic}
+        />
+      )}
+
+      <AddBookModal
+        isOpen={isEditOpen}
+        onClose={() => setIsEditOpen(false)}
+        bookToEdit={book}
+      />
+
+      <DeleteConfirmDialog
+        isOpen={isDeleteOpen}
+        onClose={() => setIsDeleteOpen(false)}
+        bookId={book.id}
+        bookTitle={book.title}
+      />
+    </>
+  );
+}
