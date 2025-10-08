@@ -12,16 +12,17 @@ export default function LandingPage() {
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <Logo />
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 md:gap-3">
             <ThemeToggle />
             <Link href="/login">
-              <Button variant="ghost" size="sm">
+              <Button variant="ghost" size="sm" className="text-xs md:text-sm px-2 md:px-4">
                 Login
               </Button>
             </Link>
             <Link href="/signup">
-              <Button size="sm">
-                Create Your Bookfolio
+              <Button size="sm" className="text-xs md:text-sm px-2 md:px-4">
+                <span className="hidden sm:inline">Create Your Bookfolio</span>
+                <span className="sm:hidden">Sign Up</span>
               </Button>
             </Link>
           </div>
