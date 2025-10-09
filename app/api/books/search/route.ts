@@ -119,7 +119,7 @@ export async function GET(request: NextRequest) {
           publisher: volumeInfo.publisher || "",
         };
       })
-      .filter((book) => {
+      .filter((book: TransformedBook) => {
         // Only include books with valid cover images
         return book.cover && book.cover.length > 0 && book.cover.startsWith('http');
       });
