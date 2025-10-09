@@ -76,17 +76,13 @@ export function BookCard({ book, view, isPublic = false }: BookCardProps) {
             {/* Cover Image */}
             <div className="relative w-12 h-16 sm:w-16 sm:h-24 flex-shrink-0 rounded overflow-hidden bg-muted">
               {!imageError ? (
-                <>
-                  <Image
-                    src={book.cover}
-                    alt={book.title}
-                    fill
-                    className="object-cover"
-                    onError={() => setImageError(true)}
-                  />
-                  {/* Hide bottom-right fold from Google Books API */}
-                  <div className="absolute bottom-0 right-0 w-4 h-4 bg-gradient-to-tl from-muted to-transparent pointer-events-none" />
-                </>
+                <Image
+                  src={book.cover}
+                  alt={book.title}
+                  fill
+                  className="object-cover scale-105"
+                  onError={() => setImageError(true)}
+                />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-[10px] sm:text-xs text-muted-foreground">
                   No Cover
@@ -216,17 +212,13 @@ export function BookCard({ book, view, isPublic = false }: BookCardProps) {
           }
         }}>
           {!imageError ? (
-            <>
-              <Image
-                src={book.cover}
-                alt={book.title}
-                fill
-                className="object-cover"
-                onError={() => setImageError(true)}
-              />
-              {/* Hide bottom-right fold from Google Books API */}
-              <div className="absolute bottom-0 right-0 w-8 h-8 bg-gradient-to-tl from-muted to-transparent pointer-events-none" />
-            </>
+            <Image
+              src={book.cover}
+              alt={book.title}
+              fill
+              className="object-cover scale-105"
+              onError={() => setImageError(true)}
+            />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-muted-foreground">
               No Cover
