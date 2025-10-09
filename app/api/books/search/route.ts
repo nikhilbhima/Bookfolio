@@ -84,6 +84,7 @@ export async function GET(request: NextRequest) {
         const volumeInfo = item.volumeInfo;
         const imageLinks = volumeInfo.imageLinks || {};
 
+        // Prefer larger images for better quality
         const cover =
           imageLinks.extraLarge ||
           imageLinks.large ||
@@ -92,10 +93,13 @@ export async function GET(request: NextRequest) {
           imageLinks.smallThumbnail ||
           "";
 
+        // Clean up the cover URL for better quality
         const secureCover = cover.replace("http://", "https://");
         const largeCover = secureCover
-          .replace("&zoom=1", "&zoom=2")
-          .replace("&edge=curl", "");
+          .replace("&zoom=1", "&zoom=3") // Increased zoom for better quality
+          .replace("&edge=curl", "") // Remove page fold
+          .replace("&printsec=frontcover", "") // Remove print section restriction
+          + (secureCover.includes("?") ? "" : "") // Ensure clean URL structure
 
         return {
           id: item.id,
@@ -120,8 +124,32 @@ export async function GET(request: NextRequest) {
         };
       })
       .filter((book: TransformedBook) => {
-        // Only include books with valid cover images
-        return book.cover && book.cover.length > 0 && book.cover.startsWith('http');
+        // Filter out books without valid covers
+        if (!book.cover || book.cover.length === 0 || !book.cover.startsWith('http')) {
+          return false;
+        }
+
+        // Filter out books with generic/placeholder titles
+        const genericTitles = ['untitled', 'unknown', 'no title', 'n/a'];
+        const titleLower = book.title.toLowerCase();
+        if (genericTitles.some(generic => titleLower.includes(generic))) {
+          return false;
+        }
+
+        // Filter out books without authors
+        if (!book.author || book.author === 'Unknown Author') {
+          return false;
+        }
+
+        // Filter out very old editions (pre-1900) unless it's a classic
+        // This helps avoid obscure historical editions
+        const publishYear = parseInt(book.publishedDate?.split('-')[0] || '0');
+        if (publishYear > 0 && publishYear < 1900 && !book.description) {
+          // Skip if old and no description (likely not the main edition)
+          return false;
+        }
+
+        return true;
       });
 
     // Sort by relevance: exact matches first, then by popularity
@@ -164,9 +192,16 @@ export async function GET(request: NextRequest) {
       if (startsWithA && !startsWithB) return -1;
       if (!startsWithA && startsWithB) return 1;
 
+      // Prefer books with ISBNs (more legitimate editions)
+      const hasISBN_A = a.isbn && a.isbn.length > 0;
+      const hasISBN_B = b.isbn && b.isbn.length > 0;
+
+      if (hasISBN_A && !hasISBN_B) return -1;
+      if (!hasISBN_A && hasISBN_B) return 1;
+
       // Prefer books with higher quality covers
-      const hasBetterCoverA = a.cover.includes("zoom=2") || a.cover.length > 100;
-      const hasBetterCoverB = b.cover.includes("zoom=2") || b.cover.length > 100;
+      const hasBetterCoverA = a.cover.includes("zoom=3") || a.cover.length > 120;
+      const hasBetterCoverB = b.cover.includes("zoom=3") || b.cover.length > 120;
 
       if (hasBetterCoverA && !hasBetterCoverB) return -1;
       if (!hasBetterCoverA && hasBetterCoverB) return 1;
