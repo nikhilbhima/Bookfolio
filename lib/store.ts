@@ -60,9 +60,24 @@ export const useBookStore = create<BookStore>((set, get) => ({
     if (initialized) return;
 
     set({ isLoading: true });
-    await get().loadProfile();
-    await get().loadBooks();
-    set({ isLoading: false, initialized: true });
+
+    try {
+      // Load both profile and books, then update state once
+      const [profile, books] = await Promise.all([
+        db.getProfile(),
+        db.getBooks()
+      ]);
+
+      set({
+        profile: profile || get().profile,
+        books,
+        isLoading: false,
+        initialized: true
+      });
+    } catch (error) {
+      console.error('[STORE] Initialization error:', error);
+      set({ isLoading: false, initialized: true });
+    }
   },
 
   loadBooks: async () => {
