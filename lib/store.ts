@@ -122,9 +122,12 @@ export const useBookStore = create<BookStore>((set, get) => ({
   },
 
   addBook: async (book) => {
-    const newBook = await db.createBook(book);
-    if (newBook) {
+    try {
+      const newBook = await db.createBook(book);
       set((state) => ({ books: [newBook, ...state.books] }));
+    } catch (error) {
+      console.error('[STORE] Failed to create book:', error);
+      throw error; // Re-throw to let the UI handle it
     }
   },
 

@@ -94,9 +94,8 @@ export function BooksGrid() {
     })
   );
 
-  // Get filtered books
-  const getFilteredBooks = useBookStore((state) => state.getFilteredBooks);
-  const filteredBooks = getFilteredBooks();
+  // Get filtered books - call getFilteredBooks() inside the selector for reactivity
+  const filteredBooks = useBookStore((state) => state.getFilteredBooks());
 
   // Pagination logic - 6 rows of 6 books = 36 books per page
   const booksPerPage = 36;

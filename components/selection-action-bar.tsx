@@ -17,11 +17,10 @@ export function SelectionActionBar() {
   const selectAll = useBookStore((state) => state.selectAll);
   const deleteSelected = useBookStore((state) => state.deleteSelected);
   const moveSelected = useBookStore((state) => state.moveSelected);
-  const getFilteredBooks = useBookStore((state) => state.getFilteredBooks);
+  const filteredBooks = useBookStore((state) => state.getFilteredBooks());
 
   if (!selectionMode || selectedBooks.size === 0) return null;
 
-  const filteredBooks = getFilteredBooks();
   const allSelected = selectedBooks.size === filteredBooks.length;
 
   const handleDelete = async () => {
