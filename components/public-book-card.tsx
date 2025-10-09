@@ -33,13 +33,17 @@ export function PublicBookCard({ book, onClick }: PublicBookCardProps) {
       {/* Cover Image */}
       <div className="relative aspect-[2/3] bg-muted overflow-hidden">
         {!imageError ? (
-          <Image
-            src={book.cover}
-            alt={book.title}
-            fill
-            className="object-cover"
-            onError={() => setImageError(true)}
-          />
+          <>
+            <Image
+              src={book.cover}
+              alt={book.title}
+              fill
+              className="object-cover"
+              onError={() => setImageError(true)}
+            />
+            {/* Hide bottom-right fold from Google Books API */}
+            <div className="absolute bottom-0 right-0 w-8 h-8 bg-gradient-to-tl from-muted to-transparent pointer-events-none" />
+          </>
         ) : (
           <div className="w-full h-full flex items-center justify-center text-muted-foreground">
             No Cover

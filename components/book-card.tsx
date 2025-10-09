@@ -76,13 +76,17 @@ export function BookCard({ book, view, isPublic = false }: BookCardProps) {
             {/* Cover Image */}
             <div className="relative w-12 h-16 sm:w-16 sm:h-24 flex-shrink-0 rounded overflow-hidden bg-muted">
               {!imageError ? (
-                <Image
-                  src={book.cover}
-                  alt={book.title}
-                  fill
-                  className="object-cover"
-                  onError={() => setImageError(true)}
-                />
+                <>
+                  <Image
+                    src={book.cover}
+                    alt={book.title}
+                    fill
+                    className="object-cover"
+                    onError={() => setImageError(true)}
+                  />
+                  {/* Hide bottom-right fold from Google Books API */}
+                  <div className="absolute bottom-0 right-0 w-4 h-4 bg-gradient-to-tl from-muted to-transparent pointer-events-none" />
+                </>
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-[10px] sm:text-xs text-muted-foreground">
                   No Cover
@@ -205,20 +209,24 @@ export function BookCard({ book, view, isPublic = false }: BookCardProps) {
         )}
 
         {/* Cover Image */}
-        <div className="relative aspect-[2/3] bg-muted cursor-pointer overflow-hidden" onClick={(e) => {
+        <div className="relative aspect-[2/3] bg-muted cursor-pointer overflow-hidden rounded-t-lg" onClick={(e) => {
           // Don't open details if clicking on action buttons or checkbox
           if (!(e.target as HTMLElement).closest('button') && !(e.target as HTMLElement).closest('[role="checkbox"]')) {
             setIsDetailsOpen(true);
           }
         }}>
           {!imageError ? (
-            <Image
-              src={book.cover}
-              alt={book.title}
-              fill
-              className="object-cover"
-              onError={() => setImageError(true)}
-            />
+            <>
+              <Image
+                src={book.cover}
+                alt={book.title}
+                fill
+                className="object-cover"
+                onError={() => setImageError(true)}
+              />
+              {/* Hide bottom-right fold from Google Books API */}
+              <div className="absolute bottom-0 right-0 w-8 h-8 bg-gradient-to-tl from-muted to-transparent pointer-events-none" />
+            </>
           ) : (
             <div className="w-full h-full flex items-center justify-center text-muted-foreground">
               No Cover
