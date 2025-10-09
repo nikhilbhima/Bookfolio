@@ -1,82 +1,58 @@
-# 📚 Bookfolio
+# Bookfolio
 
-**Your BookShelf, Beautifully _Online_.**
+**Your BookShelf, Beautifully Online.**
 
-Track your books and share your reading journey with the world.
+A web app for tracking your reading history and sharing your book collection with the world.
 
-🌐 **Live Site:** [bookfolio.me](https://www.bookfolio.me)
+Live at [bookfolio.me](https://www.bookfolio.me)
 
-## ✨ Features
+## Features
 
-- 📖 **Track Your Books** - Keep a record of every book you've read, are reading, or want to read
-- 🌐 **Share Your Journey** - Showcase your collection and reading progress with a public profile
-- ✨ **Discover & Organize** - Organize by genre, status, or rating with powerful filters
-- 🔍 **Book Search** - Search millions of books via Google Books API and OpenLibrary
-- 🌓 **Dark Mode** - Beautiful dark and light themes
-- 📱 **Mobile-First** - Fully responsive design with touch-optimized scrolling
-- 👤 **User Profiles** - Customizable profiles with social links and favorite genres
-- ⭐ **Book Ratings** - Rate and review your books with notes
+- Track books you've read, are reading, or want to read
+- Share your collection via a public profile page
+- Search millions of books using Google Books and OpenLibrary APIs
+- Organize books by genre, status, or rating
+- Dark and light theme support
+- Fully responsive mobile design
+- Customizable user profiles
 
-## 🚀 Tech Stack
+## Tech Stack
 
-- **Framework:** [Next.js 15.5.4](https://nextjs.org) with App Router & Turbopack
-- **Language:** TypeScript
-- **Styling:** Tailwind CSS with custom design system
-- **Database:** Supabase (PostgreSQL)
-- **Authentication:** Supabase Auth with Google OAuth
-- **State Management:** Zustand
-- **Deployment:** Vercel
-- **APIs:** Google Books API, OpenLibrary API
+- Next.js 15 (App Router, Turbopack)
+- TypeScript
+- Tailwind CSS
+- Supabase (PostgreSQL + Auth)
+- Zustand for state management
+- Deployed on Vercel
 
-## 🛠️ Getting Started
+## Setup
 
 ### Prerequisites
 
-- Node.js 18+ and npm
+- Node.js 18+
 - Supabase account
-- Google Books API key (optional, for book search)
+- Google Books API key (optional)
 
 ### Installation
 
-1. Clone the repository:
 ```bash
 git clone https://github.com/nikhilbhima/bookfolio.git
 cd bookfolio
-```
-
-2. Install dependencies:
-```bash
 npm install
 ```
 
-3. Set up environment variables:
+### Environment Variables
 
-Create a `.env.local` file in the root directory:
+Create `.env.local`:
 
 ```env
-# Supabase
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
-
-# Google Books API (optional)
 GOOGLE_BOOKS_API_KEY=your_google_books_api_key
-
-# Google OAuth (optional)
-NEXT_PUBLIC_GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
 ```
 
-4. Run the development server:
-```bash
-npm run dev
-```
-
-5. Open [http://localhost:3000](http://localhost:3000) in your browser
-
-### Database Setup
-
-Create the following tables in your Supabase database:
+### Database Schema
 
 **profiles table:**
 ```sql
@@ -113,59 +89,51 @@ create table books (
 );
 ```
 
-## 📦 Build & Deploy
+### Run Development Server
 
-Build for production:
+```bash
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000)
+
+## Build
+
 ```bash
 npm run build
 ```
 
-Deploy to Vercel:
-```bash
-vercel --prod
-```
-
-## 🎨 Project Structure
+## Project Structure
 
 ```
 bookfolio/
-├── app/                    # Next.js app directory
-│   ├── api/               # API routes
+├── app/                    # Next.js pages and routes
+│   ├── api/               # API endpoints
 │   ├── dashboard/         # Dashboard page
-│   ├── login/            # Login page
-│   ├── signup/           # Signup page
+│   ├── login/            # Authentication pages
 │   └── [username]/       # Public profile pages
 ├── components/            # React components
-│   ├── ui/               # UI components (shadcn/ui)
-│   └── ...               # Feature components
-├── lib/                   # Utility functions
-│   ├── database.ts       # Database operations
-│   ├── supabase.ts       # Supabase client
-│   └── store.ts          # Zustand store
+├── lib/                   # Database and utilities
 └── public/               # Static assets
 ```
 
-## 🔒 Security
+## Security
 
-- Row Level Security (RLS) policies configured in Supabase
+- Row Level Security enabled in Supabase
 - Server-side authentication checks
 - Environment variables for sensitive data
-- HTTPS-only in production
+- HTTPS in production
 
-## 📄 License
+## License
 
-This project is open source and available under the [MIT License](LICENSE).
+MIT License - see [LICENSE](LICENSE)
 
-## 👤 Author
+## Author
 
-**Nikhil Bhima**
-- Twitter: [@nikhilbhima](https://x.com/nikhilbhima)
-- GitHub: [@nikhilbhima](https://github.com/nikhilbhima)
+Nikhil Bhima
+- [Twitter/X](https://x.com/nikhilbhima)
+- [GitHub](https://github.com/nikhilbhima)
 
-## 🤝 Contributing
+## Contributing
 
-Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](https://github.com/nikhilbhima/bookfolio/issues).
-
----
-
-Built with ❤️ using Next.js and Supabase
+Contributions and feature requests welcome. Open an issue or submit a PR.
