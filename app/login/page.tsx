@@ -17,6 +17,7 @@ function LoginForm() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [isGoogleAccount, setIsGoogleAccount] = useState(false);
   const [showResetSuccess, setShowResetSuccess] = useState(false);
 
   useEffect(() => {
@@ -43,6 +44,7 @@ function LoginForm() {
       const data = await response.json();
 
       if (!response.ok) {
+        setIsGoogleAccount(data.isGoogleAccount || false);
         throw new Error(data.error || "Login failed");
       }
 
@@ -134,9 +136,16 @@ function LoginForm() {
           </div>
 
           {error && (
-            <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 p-3 rounded-lg">
-              {error}
-            </p>
+            <div className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 p-3 rounded-lg">
+              <p>{error}</p>
+              {isGoogleAccount && (
+                <p className="mt-2">
+                  <Link href="/forgot-password" className="underline font-medium">
+                    Click here to set a password
+                  </Link>
+                </p>
+              )}
+            </div>
           )}
 
           <Button type="submit" className="w-full" disabled={isLoading}>

@@ -68,6 +68,34 @@ export async function POST(request: NextRequest) {
     });
 
     if (error) {
+      // Check if user exists but signed up with OAuth
+      if (error.message.includes('Invalid login credentials') || error.message.includes('Email not confirmed')) {
+        const adminClient = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.SUPABASE_SERVICE_ROLE_KEY!,
+          {
+            auth: {
+              autoRefreshToken: false,
+              persistSession: false
+            }
+          }
+        );
+
+        // Check if user exists with this email
+        const { data: users } = await adminClient.auth.admin.listUsers();
+        const existingUser = users?.users.find(u => u.email === email);
+
+        if (existingUser && existingUser.app_metadata.provider === 'google') {
+          return NextResponse.json(
+            {
+              error: 'This account was created with Google. Please use "Continue with Google" to sign in, or reset your password to enable email/password login.',
+              isGoogleAccount: true
+            },
+            { status: 401 }
+          );
+        }
+      }
+
       return NextResponse.json(
         { error: error.message },
         { status: 401 }

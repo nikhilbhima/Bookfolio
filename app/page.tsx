@@ -54,7 +54,7 @@ export default function LandingPage() {
             <div className="space-y-3">
               <h1 className="text-4xl sm:text-5xl md:text-6xl leading-tight tracking-tight">
                 <span className="block font-bold">Your BookShelf,</span>
-                <span className="block font-serif font-normal">
+                <span className="block font-serif">
                   Beautifully <span className="italic">Online</span>.
                 </span>
               </h1>
