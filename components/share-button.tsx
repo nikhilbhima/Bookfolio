@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { Button } from "./ui/button";
 import { ShareModal } from "./share-modal";
+import { useBookStore } from "@/lib/store";
 
 export function ShareButton() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const profile = useBookStore((state) => state.profile);
 
   return (
     <>
@@ -23,7 +25,7 @@ export function ShareButton() {
       <ShareModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        username="bookworm_jane"
+        username={profile.username}
       />
     </>
   );
