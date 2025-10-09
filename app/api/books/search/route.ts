@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 interface GoogleBooksVolumeInfo {
   title?: string;
   authors?: string[];
+  publisher?: string;
   imageLinks?: {
     smallThumbnail?: string;
     thumbnail?: string;
@@ -38,6 +39,7 @@ interface TransformedBook {
   source: string;
   ratingsCount?: number;
   averageRating?: number;
+  publisher?: string;
 }
 
 interface OpenLibraryDoc {
@@ -114,17 +116,36 @@ export async function GET(request: NextRequest) {
           source: "google",
           ratingsCount: volumeInfo.ratingsCount || 0,
           averageRating: volumeInfo.averageRating || 0,
+          publisher: volumeInfo.publisher || "",
         };
       })
       .filter((book) => book.cover !== ""); // Only include books with covers
 
     // Sort by relevance: exact matches first, then by popularity
     const queryLower = query.toLowerCase();
+
+    // Popular publishers to prioritize
+    const popularPublishers = [
+      'penguin',
+      'random house',
+      'harpercollins',
+      'simon & schuster',
+      'macmillan',
+      'hachette',
+      'scholastic',
+      'oxford',
+      'cambridge',
+      'vintage',
+      'fingerprint',
+      'bloomsbury',
+      'faber',
+      'picador',
+      'little, brown',
+    ];
+
     const sortedGoogleResults = transformedGoogleResults.sort((a, b) => {
       const titleA = a.title.toLowerCase();
       const titleB = b.title.toLowerCase();
-      const authorA = a.author.toLowerCase();
-      const authorB = b.author.toLowerCase();
 
       // Check for exact title matches
       const exactMatchA = titleA === queryLower;
@@ -140,14 +161,24 @@ export async function GET(request: NextRequest) {
       if (startsWithA && !startsWithB) return -1;
       if (!startsWithA && startsWithB) return 1;
 
-      // Prefer books with higher quality covers (check URL length as proxy)
+      // Prefer books with higher quality covers
       const hasBetterCoverA = a.cover.includes("zoom=2") || a.cover.length > 100;
       const hasBetterCoverB = b.cover.includes("zoom=2") || b.cover.length > 100;
 
       if (hasBetterCoverA && !hasBetterCoverB) return -1;
       if (!hasBetterCoverA && hasBetterCoverB) return 1;
 
-      // Otherwise sort by popularity (ratings × average rating)
+      // Prioritize popular publishers
+      const publisherA = (a.publisher || '').toLowerCase();
+      const publisherB = (b.publisher || '').toLowerCase();
+
+      const hasPopularPublisherA = popularPublishers.some(pub => publisherA.includes(pub));
+      const hasPopularPublisherB = popularPublishers.some(pub => publisherB.includes(pub));
+
+      if (hasPopularPublisherA && !hasPopularPublisherB) return -1;
+      if (!hasPopularPublisherA && hasPopularPublisherB) return 1;
+
+      // Sort by popularity (ratings × average rating)
       const popularityA = (a.ratingsCount || 0) * (a.averageRating || 0);
       const popularityB = (b.ratingsCount || 0) * (b.averageRating || 0);
       return popularityB - popularityA;
