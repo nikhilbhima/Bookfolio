@@ -76,51 +76,57 @@ export async function GET(request: NextRequest) {
     const googleData = await googleResponse.json();
     const googleResults = googleData.items || [];
 
-    // Transform Google Books results
-    const transformedGoogleResults: TransformedBook[] = googleResults.map((item: GoogleBooksItem) => {
-      const volumeInfo = item.volumeInfo;
-      const imageLinks = volumeInfo.imageLinks || {};
+    // Transform Google Books results and filter out books without covers
+    const transformedGoogleResults: TransformedBook[] = googleResults
+      .map((item: GoogleBooksItem) => {
+        const volumeInfo = item.volumeInfo;
+        const imageLinks = volumeInfo.imageLinks || {};
 
-      const cover =
-        imageLinks.extraLarge ||
-        imageLinks.large ||
-        imageLinks.medium ||
-        imageLinks.thumbnail ||
-        imageLinks.smallThumbnail ||
-        "";
+        const cover =
+          imageLinks.extraLarge ||
+          imageLinks.large ||
+          imageLinks.medium ||
+          imageLinks.thumbnail ||
+          imageLinks.smallThumbnail ||
+          "";
 
-      const secureCover = cover.replace("http://", "https://");
-      const largeCover = secureCover.replace("&zoom=1", "&zoom=2");
+        const secureCover = cover.replace("http://", "https://");
+        const largeCover = secureCover
+          .replace("&zoom=1", "&zoom=2")
+          .replace("&edge=curl", "");
 
-      return {
-        id: item.id,
-        title: volumeInfo.title || "Unknown Title",
-        author: volumeInfo.authors?.join(", ") || "Unknown Author",
-        cover: largeCover,
-        coverLarge: largeCover,
-        genre: volumeInfo.categories?.[0] || "",
-        description: volumeInfo.description || "",
-        isbn:
-          volumeInfo.industryIdentifiers?.find((id) => id.type === "ISBN_13")
-            ?.identifier ||
-          volumeInfo.industryIdentifiers?.find((id) => id.type === "ISBN_10")
-            ?.identifier ||
-          "",
-        publishedDate: volumeInfo.publishedDate || "",
-        pageCount: volumeInfo.pageCount || 0,
-        source: "google",
-        ratingsCount: volumeInfo.ratingsCount || 0,
-        averageRating: volumeInfo.averageRating || 0,
-      };
-    });
+        return {
+          id: item.id,
+          title: volumeInfo.title || "Unknown Title",
+          author: volumeInfo.authors?.join(", ") || "Unknown Author",
+          cover: largeCover,
+          coverLarge: largeCover,
+          genre: volumeInfo.categories?.[0] || "",
+          description: volumeInfo.description || "",
+          isbn:
+            volumeInfo.industryIdentifiers?.find((id) => id.type === "ISBN_13")
+              ?.identifier ||
+            volumeInfo.industryIdentifiers?.find((id) => id.type === "ISBN_10")
+              ?.identifier ||
+            "",
+          publishedDate: volumeInfo.publishedDate || "",
+          pageCount: volumeInfo.pageCount || 0,
+          source: "google",
+          ratingsCount: volumeInfo.ratingsCount || 0,
+          averageRating: volumeInfo.averageRating || 0,
+        };
+      })
+      .filter((book) => book.cover !== ""); // Only include books with covers
 
     // Sort by relevance: exact matches first, then by popularity
     const queryLower = query.toLowerCase();
     const sortedGoogleResults = transformedGoogleResults.sort((a, b) => {
       const titleA = a.title.toLowerCase();
       const titleB = b.title.toLowerCase();
+      const authorA = a.author.toLowerCase();
+      const authorB = b.author.toLowerCase();
 
-      // Check for exact matches
+      // Check for exact title matches
       const exactMatchA = titleA === queryLower;
       const exactMatchB = titleB === queryLower;
 
@@ -133,6 +139,13 @@ export async function GET(request: NextRequest) {
 
       if (startsWithA && !startsWithB) return -1;
       if (!startsWithA && startsWithB) return 1;
+
+      // Prefer books with higher quality covers (check URL length as proxy)
+      const hasBetterCoverA = a.cover.includes("zoom=2") || a.cover.length > 100;
+      const hasBetterCoverB = b.cover.includes("zoom=2") || b.cover.length > 100;
+
+      if (hasBetterCoverA && !hasBetterCoverB) return -1;
+      if (!hasBetterCoverA && hasBetterCoverB) return 1;
 
       // Otherwise sort by popularity (ratings × average rating)
       const popularityA = (a.ratingsCount || 0) * (a.averageRating || 0);
