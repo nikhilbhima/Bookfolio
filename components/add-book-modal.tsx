@@ -454,7 +454,7 @@ export function AddBookModal({ isOpen, onClose, bookToEdit }: AddBookModalProps)
                     <Label htmlFor="status" className="text-sm sm:text-base">Status *</Label>
                     <Select
                       value={formData.status}
-                      onValueChange={(value) => setFormData({ ...formData, status: value })}
+                      onValueChange={(value) => setFormData({ ...formData, status: value as "reading" | "completed" | "to-read" })}
                     >
                       <SelectTrigger id="status" className="mt-1.5 text-sm sm:text-base">
                         <SelectValue />
