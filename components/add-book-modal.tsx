@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import { X, Upload, Search, Loader2, ChevronDown, ChevronUp } from "lucide-react";
 import { useBookStore } from "@/lib/store";
 import { Book } from "@/lib/mock-data";
@@ -54,6 +54,7 @@ export function AddBookModal({ isOpen, onClose, bookToEdit }: AddBookModalProps)
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [selectedBook, setSelectedBook] = useState<SearchResult | null>(null);
   const [showManualEntry, setShowManualEntry] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const [coverPreview, setCoverPreview] = useState<string | null>(bookToEdit?.cover || null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -66,6 +67,19 @@ export function AddBookModal({ isOpen, onClose, bookToEdit }: AddBookModalProps)
     status: bookToEdit?.status || "to-read",
     notes: bookToEdit?.notes || "",
   });
+
+  // Pagination
+  const resultsPerPage = 12; // 3 per row × 4 rows
+  const totalPages = Math.ceil(searchResults.length / resultsPerPage);
+  const paginatedResults = useMemo(() => {
+    const startIndex = (currentPage - 1) * resultsPerPage;
+    return searchResults.slice(startIndex, startIndex + resultsPerPage);
+  }, [searchResults, currentPage]);
+
+  // Reset to page 1 when search results change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchResults]);
 
   // Search books with debounce
   useEffect(() => {
@@ -106,7 +120,7 @@ export function AddBookModal({ isOpen, onClose, bookToEdit }: AddBookModalProps)
     setCoverPreview(book.coverLarge || book.cover);
     setSearchQuery("");
     setSearchResults([]);
-    setShowManualEntry(true); // Auto-expand manual entry after selection
+    setShowManualEntry(true);
   };
 
   const handleCoverUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -167,6 +181,7 @@ export function AddBookModal({ isOpen, onClose, bookToEdit }: AddBookModalProps)
       setSearchQuery("");
       setSearchResults([]);
       setShowManualEntry(false);
+      setCurrentPage(1);
       onClose();
     } catch (error) {
       console.error("Error saving book:", error);
@@ -191,6 +206,7 @@ export function AddBookModal({ isOpen, onClose, bookToEdit }: AddBookModalProps)
     setSearchQuery("");
     setSearchResults([]);
     setShowManualEntry(false);
+    setCurrentPage(1);
     onClose();
   };
 
@@ -228,36 +244,73 @@ export function AddBookModal({ isOpen, onClose, bookToEdit }: AddBookModalProps)
               )}
 
               {searchResults.length > 0 && (
-                <div className="grid grid-cols-1 gap-2 sm:gap-3 max-h-64 sm:max-h-96 overflow-y-auto">
-                  {searchResults.map((book) => (
-                    <button
-                      key={book.id}
-                      type="button"
-                      onClick={() => handleSelectBook(book)}
-                      className="flex gap-2 sm:gap-3 p-2 sm:p-3 border rounded-lg hover:bg-accent transition-colors text-left"
-                    >
-                      {book.cover ? (
-                        <Image
-                          src={book.cover}
-                          alt={book.title}
-                          width={50}
-                          height={75}
-                          className="object-cover rounded flex-shrink-0"
-                        />
-                      ) : (
-                        <div className="w-[50px] h-[75px] bg-muted rounded flex items-center justify-center text-xs text-muted-foreground flex-shrink-0">
-                          No Cover
-                        </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium truncate text-sm sm:text-base">{book.title}</h4>
-                        <p className="text-xs sm:text-sm text-muted-foreground truncate">{book.author}</p>
-                        {book.genre && (
-                          <p className="text-xs text-muted-foreground mt-1 truncate">{book.genre}</p>
+                <div className="space-y-3">
+                  {/* Grid of search results */}
+                  <div className="grid grid-cols-3 gap-3 sm:gap-4">
+                    {paginatedResults.map((book) => (
+                      <button
+                        key={book.id}
+                        type="button"
+                        onClick={() => handleSelectBook(book)}
+                        className="flex flex-col gap-2 p-2 sm:p-3 border rounded-lg hover:bg-accent transition-colors"
+                      >
+                        {book.cover ? (
+                          <div className="relative w-full aspect-[2/3] bg-muted rounded overflow-hidden">
+                            <Image
+                              src={book.cover}
+                              alt={book.title}
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-full aspect-[2/3] bg-muted rounded flex items-center justify-center text-xs text-muted-foreground">
+                            No Cover
+                          </div>
                         )}
-                      </div>
-                    </button>
-                  ))}
+                        <div className="space-y-0.5 text-left">
+                          <h4 className="font-medium text-xs sm:text-sm line-clamp-2 leading-tight">
+                            {book.title}
+                          </h4>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {book.author}
+                          </p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Pagination */}
+                  {totalPages > 1 && (
+                    <div className="flex items-center justify-center gap-2 pt-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                        className="h-8 w-8 p-0"
+                      >
+                        ←
+                      </Button>
+                      <span className="text-xs sm:text-sm text-muted-foreground">
+                        Page {currentPage} of {totalPages}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                        disabled={currentPage === totalPages}
+                        className="h-8 w-8 p-0"
+                      >
+                        →
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Search tip */}
+                  <p className="text-xs text-center text-muted-foreground italic">
+                    💡 Search with book name and author for better results
+                  </p>
                 </div>
               )}
 
