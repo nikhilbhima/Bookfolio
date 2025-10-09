@@ -119,7 +119,10 @@ export async function GET(request: NextRequest) {
           publisher: volumeInfo.publisher || "",
         };
       })
-      .filter((book) => book.cover !== ""); // Only include books with covers
+      .filter((book) => {
+        // Only include books with valid cover images
+        return book.cover && book.cover.length > 0 && book.cover.startsWith('http');
+      });
 
     // Sort by relevance: exact matches first, then by popularity
     const queryLower = query.toLowerCase();
