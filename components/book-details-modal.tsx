@@ -48,7 +48,7 @@ export function BookDetailsModal({
       }
     }} modal={true}>
       <DialogContent
-        className="max-w-3xl max-h-[90vh] overflow-y-auto"
+        className="max-w-3xl max-h-[85vh] sm:max-h-[90vh] overflow-y-auto overscroll-contain"
         showCloseButton={true}
         onPointerDownOutside={(e) => {
           e.preventDefault();

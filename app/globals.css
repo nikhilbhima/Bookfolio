@@ -90,12 +90,53 @@
   * {
     @apply border-border outline-ring/50;
   }
+
+  html {
+    /* Smooth scrolling for better mobile UX */
+    scroll-behavior: smooth;
+    /* Prevent horizontal scroll on mobile */
+    overflow-x: hidden;
+    /* Better touch scrolling on iOS */
+    -webkit-overflow-scrolling: touch;
+  }
+
   body {
     @apply bg-background text-foreground transition-colors duration-300;
+    /* Prevent horizontal scroll */
+    overflow-x: hidden;
+    /* Better touch scrolling on mobile */
+    -webkit-overflow-scrolling: touch;
+    /* Prevent pull-to-refresh on mobile when scrolled to top */
+    overscroll-behavior-y: contain;
+  }
+
+  /* Improve scrolling performance on mobile */
+  main {
+    /* Enable GPU acceleration for smoother scrolling */
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
   }
 }
 
 @layer utilities {
+  /* Mobile scroll optimization utilities */
+  .touch-pan-y {
+    touch-action: pan-y;
+  }
+
+  .touch-pan-x {
+    touch-action: pan-x;
+  }
+
+  .overscroll-contain {
+    overscroll-behavior: contain;
+  }
+
+  .scroll-smooth {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+
   /* Neon glow effects */
   .neon-blue {
     box-shadow: 0 0 12px rgba(59, 130, 246, 0.6), inset 0 0 12px rgba(59, 130, 246, 0.1);
