@@ -114,8 +114,27 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    // Sort by popularity
+    // Sort by relevance: exact matches first, then by popularity
+    const queryLower = query.toLowerCase();
     const sortedGoogleResults = transformedGoogleResults.sort((a, b) => {
+      const titleA = a.title.toLowerCase();
+      const titleB = b.title.toLowerCase();
+
+      // Check for exact matches
+      const exactMatchA = titleA === queryLower;
+      const exactMatchB = titleB === queryLower;
+
+      if (exactMatchA && !exactMatchB) return -1;
+      if (!exactMatchA && exactMatchB) return 1;
+
+      // Check if title starts with query
+      const startsWithA = titleA.startsWith(queryLower);
+      const startsWithB = titleB.startsWith(queryLower);
+
+      if (startsWithA && !startsWithB) return -1;
+      if (!startsWithA && startsWithB) return 1;
+
+      // Otherwise sort by popularity (ratings × average rating)
       const popularityA = (a.ratingsCount || 0) * (a.averageRating || 0);
       const popularityB = (b.ratingsCount || 0) * (b.averageRating || 0);
       return popularityB - popularityA;
