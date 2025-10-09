@@ -96,10 +96,8 @@ export async function GET(request: NextRequest) {
         // Clean up the cover URL for better quality
         const secureCover = cover.replace("http://", "https://");
         const largeCover = secureCover
-          .replace("&zoom=1", "&zoom=3") // Increased zoom for better quality
-          .replace("&edge=curl", "") // Remove page fold
-          .replace("&printsec=frontcover", "") // Remove print section restriction
-          + (secureCover.includes("?") ? "" : "") // Ensure clean URL structure
+          .replace("&zoom=1", "&zoom=2") // Increased zoom for better quality
+          .replace("&edge=curl", ""); // Remove page fold
 
         return {
           id: item.id,
@@ -122,23 +120,7 @@ export async function GET(request: NextRequest) {
           averageRating: volumeInfo.averageRating || 0,
           publisher: volumeInfo.publisher || "",
         };
-      })
-      .filter((book: TransformedBook) => {
-        // Only filter out books that definitely have no cover
-        // Be lenient to avoid filtering out too many results
-        if (!book.cover || book.cover.length === 0) {
-          return false;
-        }
-
-        // Filter out books with generic/placeholder titles
-        const genericTitles = ['untitled', 'no title'];
-        const titleLower = book.title.toLowerCase();
-        if (genericTitles.some(generic => titleLower === generic)) {
-          return false;
-        }
-
-        return true;
-      });
+      }); // Don't filter - keep all results, just sort them better
 
     // Sort by relevance: exact matches first, then by popularity
     const queryLower = query.toLowerCase();
@@ -166,35 +148,28 @@ export async function GET(request: NextRequest) {
       const titleA = a.title.toLowerCase();
       const titleB = b.title.toLowerCase();
 
-      // Check for exact title matches
+      // PRIORITY 1: Books with covers come first
+      const hasCoverA = a.cover && a.cover.length > 50;
+      const hasCoverB = b.cover && b.cover.length > 50;
+
+      if (hasCoverA && !hasCoverB) return -1;
+      if (!hasCoverA && hasCoverB) return 1;
+
+      // PRIORITY 2: Exact title matches
       const exactMatchA = titleA === queryLower;
       const exactMatchB = titleB === queryLower;
 
       if (exactMatchA && !exactMatchB) return -1;
       if (!exactMatchA && exactMatchB) return 1;
 
-      // Check if title starts with query
+      // PRIORITY 3: Titles that start with query
       const startsWithA = titleA.startsWith(queryLower);
       const startsWithB = titleB.startsWith(queryLower);
 
       if (startsWithA && !startsWithB) return -1;
       if (!startsWithA && startsWithB) return 1;
 
-      // Prefer books with ISBNs (more legitimate editions)
-      const hasISBN_A = a.isbn && a.isbn.length > 0;
-      const hasISBN_B = b.isbn && b.isbn.length > 0;
-
-      if (hasISBN_A && !hasISBN_B) return -1;
-      if (!hasISBN_A && hasISBN_B) return 1;
-
-      // Prefer books with higher quality covers
-      const hasBetterCoverA = a.cover.includes("zoom=3") || a.cover.length > 120;
-      const hasBetterCoverB = b.cover.includes("zoom=3") || b.cover.length > 120;
-
-      if (hasBetterCoverA && !hasBetterCoverB) return -1;
-      if (!hasBetterCoverA && hasBetterCoverB) return 1;
-
-      // Prioritize popular publishers
+      // PRIORITY 4: Popular publishers
       const publisherA = (a.publisher || '').toLowerCase();
       const publisherB = (b.publisher || '').toLowerCase();
 
@@ -204,7 +179,7 @@ export async function GET(request: NextRequest) {
       if (hasPopularPublisherA && !hasPopularPublisherB) return -1;
       if (!hasPopularPublisherA && hasPopularPublisherB) return 1;
 
-      // Sort by popularity (ratings × average rating)
+      // PRIORITY 5: Popularity (ratings × average rating)
       const popularityA = (a.ratingsCount || 0) * (a.averageRating || 0);
       const popularityB = (b.ratingsCount || 0) * (b.averageRating || 0);
       return popularityB - popularityA;
@@ -264,8 +239,7 @@ export async function GET(request: NextRequest) {
           gBook.author.toLowerCase() === olBook.author.toLowerCase()
       );
 
-      if (!isDuplicate && olBook.cover && olBook.cover.length > 0) {
-        // Only add OpenLibrary results if they have covers
+      if (!isDuplicate) {
         combined.push(olBook);
       }
     });
