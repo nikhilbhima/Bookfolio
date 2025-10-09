@@ -212,8 +212,8 @@ export function AddBookModal({ isOpen, onClose, bookToEdit }: AddBookModalProps)
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
-        <DialogHeader>
+      <DialogContent className="max-w-4xl max-h-[85vh] sm:max-h-[90vh] overflow-y-auto p-4 sm:p-6">
+        <DialogHeader className="sticky top-0 z-10 bg-background pb-3 sm:pb-4 -mt-4 -mx-4 px-4 sm:-mt-6 sm:-mx-6 sm:px-6 pt-4 sm:pt-6 border-b mb-4">
           <DialogTitle className="text-lg sm:text-xl">
             {bookToEdit ? "Edit Book" : "Add Book"}
           </DialogTitle>
