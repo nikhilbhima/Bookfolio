@@ -124,28 +124,16 @@ export async function GET(request: NextRequest) {
         };
       })
       .filter((book: TransformedBook) => {
-        // Filter out books without valid covers
-        if (!book.cover || book.cover.length === 0 || !book.cover.startsWith('http')) {
+        // Only filter out books that definitely have no cover
+        // Be lenient to avoid filtering out too many results
+        if (!book.cover || book.cover.length === 0) {
           return false;
         }
 
         // Filter out books with generic/placeholder titles
-        const genericTitles = ['untitled', 'unknown', 'no title', 'n/a'];
+        const genericTitles = ['untitled', 'no title'];
         const titleLower = book.title.toLowerCase();
-        if (genericTitles.some(generic => titleLower.includes(generic))) {
-          return false;
-        }
-
-        // Filter out books without authors
-        if (!book.author || book.author === 'Unknown Author') {
-          return false;
-        }
-
-        // Filter out very old editions (pre-1900) unless it's a classic
-        // This helps avoid obscure historical editions
-        const publishYear = parseInt(book.publishedDate?.split('-')[0] || '0');
-        if (publishYear > 0 && publishYear < 1900 && !book.description) {
-          // Skip if old and no description (likely not the main edition)
+        if (genericTitles.some(generic => titleLower === generic)) {
           return false;
         }
 
@@ -222,8 +210,9 @@ export async function GET(request: NextRequest) {
       return popularityB - popularityA;
     });
 
-    // If we have enough results, return them
-    if (sortedGoogleResults.length >= 10) {
+    // If we have enough quality results with covers, return them
+    // Otherwise fetch from OpenLibrary to supplement
+    if (sortedGoogleResults.length >= 8) {
       return NextResponse.json(sortedGoogleResults);
     }
 
@@ -264,22 +253,35 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    // Combine results
+    // Combine results - prioritize books with covers
     const combined = [...sortedGoogleResults];
 
     transformedOpenLibraryResults.forEach((olBook) => {
+      // Check for duplicates
       const isDuplicate = combined.some(
         (gBook) =>
           gBook.title.toLowerCase() === olBook.title.toLowerCase() &&
           gBook.author.toLowerCase() === olBook.author.toLowerCase()
       );
 
-      if (!isDuplicate) {
+      if (!isDuplicate && olBook.cover && olBook.cover.length > 0) {
+        // Only add OpenLibrary results if they have covers
         combined.push(olBook);
       }
     });
 
-    return NextResponse.json(combined.slice(0, 40));
+    // Sort combined results one more time to ensure books with covers come first
+    const finalResults = combined.sort((a, b) => {
+      const hasCoverA = a.cover && a.cover.length > 50; // Valid cover URL
+      const hasCoverB = b.cover && b.cover.length > 50;
+
+      if (hasCoverA && !hasCoverB) return -1;
+      if (!hasCoverA && hasCoverB) return 1;
+
+      return 0; // Keep original order
+    });
+
+    return NextResponse.json(finalResults.slice(0, 40));
   } catch (error) {
     console.error("Book search error:", error);
     return NextResponse.json(
