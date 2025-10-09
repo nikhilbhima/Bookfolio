@@ -94,9 +94,9 @@ export default function ResetPasswordPage() {
       <div className="min-h-screen flex items-center justify-center px-4 py-12">
         <div className="max-w-md w-full">
           <div className="text-center mb-8">
-            <Link href="/" className="inline-flex justify-center mb-2">
+            <div className="inline-flex justify-center mb-2">
               <Logo />
-            </Link>
+            </div>
           </div>
 
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6 text-center">
@@ -118,9 +118,9 @@ export default function ResetPasswordPage() {
       <div className="max-w-md w-full">
         {/* Header */}
         <div className="text-center mb-8">
-          <Link href="/" className="inline-flex justify-center mb-2">
+          <div className="inline-flex justify-center mb-2">
             <Logo />
-          </Link>
+          </div>
           <h1 className="text-2xl font-bold mt-4">Reset Password</h1>
           <p className="text-muted-foreground mt-2">Enter your new password</p>
         </div>

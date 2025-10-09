@@ -158,9 +158,9 @@ export default function SignupPage() {
       <div className="max-w-md w-full">
         {/* Header */}
         <div className="text-center mb-8">
-          <Link href="/" className="inline-flex justify-center mb-2">
+          <div className="inline-flex justify-center mb-2">
             <Logo />
-          </Link>
+          </div>
           <h1 className="text-2xl font-bold mt-4">Create Your Account</h1>
           <p className="text-muted-foreground mt-2">
             {step === 1 ? "First, claim your username" : "Set up your account"}

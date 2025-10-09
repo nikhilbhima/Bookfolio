@@ -42,9 +42,9 @@ export default function ForgotPasswordPage() {
       <div className="min-h-screen flex items-center justify-center px-4 py-12">
         <div className="max-w-md w-full">
           <div className="text-center mb-8">
-            <Link href="/" className="inline-flex justify-center mb-2">
+            <div className="inline-flex justify-center mb-2">
               <Logo />
-            </Link>
+            </div>
           </div>
 
           <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-6 text-center">
@@ -74,9 +74,9 @@ export default function ForgotPasswordPage() {
       <div className="max-w-md w-full">
         {/* Header */}
         <div className="text-center mb-8">
-          <Link href="/" className="inline-flex justify-center mb-2">
+          <div className="inline-flex justify-center mb-2">
             <Logo />
-          </Link>
+          </div>
           <h1 className="text-2xl font-bold mt-4">Forgot Password?</h1>
           <p className="text-muted-foreground mt-2">
             Enter your email and we&apos;ll send you a reset link

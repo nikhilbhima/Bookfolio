@@ -6,7 +6,7 @@ export default function AboutPage() {
     <div className="min-h-screen flex flex-col">
       <nav className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <Link href="/"><Logo /></Link>
+          <Logo />
           <Link href="/"><Button variant="ghost" size="sm">Back to Home</Button></Link>
         </div>
       </nav>
