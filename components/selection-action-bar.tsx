@@ -17,11 +17,17 @@ export function SelectionActionBar() {
   const selectAll = useBookStore((state) => state.selectAll);
   const deleteSelected = useBookStore((state) => state.deleteSelected);
   const moveSelected = useBookStore((state) => state.moveSelected);
-  const filteredBooks = useBookStore((state) => state.getFilteredBooks());
+  const books = useBookStore((state) => state.books);
+  const filter = useBookStore((state) => state.filter);
 
   if (!selectionMode || selectedBooks.size === 0) return null;
 
-  const allSelected = selectedBooks.size === filteredBooks.length;
+  // Calculate filtered books count
+  const filteredBooksCount = filter === "all"
+    ? books.length
+    : books.filter((book) => book.status === filter).length;
+
+  const allSelected = selectedBooks.size === filteredBooksCount;
 
   const handleDelete = async () => {
     if (confirm(`Delete ${selectedBooks.size} book${selectedBooks.size > 1 ? 's' : ''}?`)) {

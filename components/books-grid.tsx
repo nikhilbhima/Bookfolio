@@ -94,8 +94,51 @@ export function BooksGrid() {
     })
   );
 
-  // Get filtered books - call getFilteredBooks() inside the selector for reactivity
-  const filteredBooks = useBookStore((state) => state.getFilteredBooks());
+  // Get filtered books - derive from state directly for proper reactivity
+  const filteredBooks = useBookStore((state) => {
+    const { books, filter, searchQuery, sortBy } = state;
+
+    let filtered = books;
+
+    // Apply status filter
+    if (filter !== "all") {
+      filtered = filtered.filter((book) => book.status === filter);
+    }
+
+    // Apply search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (book) =>
+          book.title.toLowerCase().includes(query) ||
+          book.author.toLowerCase().includes(query) ||
+          (book.genre && book.genre.toLowerCase().includes(query))
+      );
+    }
+
+    // Apply sorting
+    const sorted = [...filtered];
+    switch (sortBy) {
+      case "a-z":
+        sorted.sort((a, b) => a.title.localeCompare(b.title));
+        break;
+      case "z-a":
+        sorted.sort((a, b) => b.title.localeCompare(a.title));
+        break;
+      case "rating-high":
+        sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+        break;
+      case "rating-low":
+        sorted.sort((a, b) => (a.rating || 0) - (b.rating || 0));
+        break;
+      case "newest":
+      default:
+        // Keep original order (newest first)
+        break;
+    }
+
+    return sorted;
+  });
 
   // Pagination logic - 6 rows of 6 books = 36 books per page
   const booksPerPage = 36;
