@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from "next/server";
 interface GoogleBooksVolumeInfo {
   title?: string;
   authors?: string[];
-  publisher?: string;
   imageLinks?: {
     smallThumbnail?: string;
     thumbnail?: string;
@@ -39,7 +38,6 @@ interface TransformedBook {
   source: string;
   ratingsCount?: number;
   averageRating?: number;
-  publisher?: string;
 }
 
 interface OpenLibraryDoc {
@@ -78,116 +76,74 @@ export async function GET(request: NextRequest) {
     const googleData = await googleResponse.json();
     const googleResults = googleData.items || [];
 
-    // Transform Google Books results and filter out books without covers
-    const transformedGoogleResults: TransformedBook[] = googleResults
-      .map((item: GoogleBooksItem) => {
-        const volumeInfo = item.volumeInfo;
-        const imageLinks = volumeInfo.imageLinks || {};
+    // Transform Google Books results
+    const transformedGoogleResults: TransformedBook[] = googleResults.map((item: GoogleBooksItem) => {
+      const volumeInfo = item.volumeInfo;
+      const imageLinks = volumeInfo.imageLinks || {};
 
-        // Prefer larger images for better quality
-        const cover =
-          imageLinks.extraLarge ||
-          imageLinks.large ||
-          imageLinks.medium ||
-          imageLinks.thumbnail ||
-          imageLinks.smallThumbnail ||
-          "";
+      const cover =
+        imageLinks.extraLarge ||
+        imageLinks.large ||
+        imageLinks.medium ||
+        imageLinks.thumbnail ||
+        imageLinks.smallThumbnail ||
+        "";
 
-        // Clean up the cover URL for better quality
-        const secureCover = cover.replace("http://", "https://");
-        const largeCover = secureCover
-          .replace("&zoom=1", "&zoom=2") // Increased zoom for better quality
-          .replace("&edge=curl", ""); // Remove page fold
+      const secureCover = cover.replace("http://", "https://");
+      const largeCover = secureCover
+        .replace("&zoom=1", "&zoom=2")
+        .replace("&edge=curl", ""); // Remove page fold
 
-        return {
-          id: item.id,
-          title: volumeInfo.title || "Unknown Title",
-          author: volumeInfo.authors?.join(", ") || "Unknown Author",
-          cover: largeCover,
-          coverLarge: largeCover,
-          genre: volumeInfo.categories?.[0] || "",
-          description: volumeInfo.description || "",
-          isbn:
-            volumeInfo.industryIdentifiers?.find((id) => id.type === "ISBN_13")
-              ?.identifier ||
-            volumeInfo.industryIdentifiers?.find((id) => id.type === "ISBN_10")
-              ?.identifier ||
-            "",
-          publishedDate: volumeInfo.publishedDate || "",
-          pageCount: volumeInfo.pageCount || 0,
-          source: "google",
-          ratingsCount: volumeInfo.ratingsCount || 0,
-          averageRating: volumeInfo.averageRating || 0,
-          publisher: volumeInfo.publisher || "",
-        };
-      }); // Don't filter - keep all results, just sort them better
+      return {
+        id: item.id,
+        title: volumeInfo.title || "Unknown Title",
+        author: volumeInfo.authors?.join(", ") || "Unknown Author",
+        cover: largeCover,
+        coverLarge: largeCover,
+        genre: volumeInfo.categories?.[0] || "",
+        description: volumeInfo.description || "",
+        isbn:
+          volumeInfo.industryIdentifiers?.find((id) => id.type === "ISBN_13")
+            ?.identifier ||
+          volumeInfo.industryIdentifiers?.find((id) => id.type === "ISBN_10")
+            ?.identifier ||
+          "",
+        publishedDate: volumeInfo.publishedDate || "",
+        pageCount: volumeInfo.pageCount || 0,
+        source: "google",
+        ratingsCount: volumeInfo.ratingsCount || 0,
+        averageRating: volumeInfo.averageRating || 0,
+      };
+    });
 
     // Sort by relevance: exact matches first, then by popularity
     const queryLower = query.toLowerCase();
-
-    // Popular publishers to prioritize
-    const popularPublishers = [
-      'penguin',
-      'random house',
-      'harpercollins',
-      'simon & schuster',
-      'macmillan',
-      'hachette',
-      'scholastic',
-      'oxford',
-      'cambridge',
-      'vintage',
-      'fingerprint',
-      'bloomsbury',
-      'faber',
-      'picador',
-      'little, brown',
-    ];
-
     const sortedGoogleResults = transformedGoogleResults.sort((a, b) => {
       const titleA = a.title.toLowerCase();
       const titleB = b.title.toLowerCase();
 
-      // PRIORITY 1: Books with covers come first
-      const hasCoverA = a.cover && a.cover.length > 50;
-      const hasCoverB = b.cover && b.cover.length > 50;
-
-      if (hasCoverA && !hasCoverB) return -1;
-      if (!hasCoverA && hasCoverB) return 1;
-
-      // PRIORITY 2: Exact title matches
+      // Check for exact matches
       const exactMatchA = titleA === queryLower;
       const exactMatchB = titleB === queryLower;
 
       if (exactMatchA && !exactMatchB) return -1;
       if (!exactMatchA && exactMatchB) return 1;
 
-      // PRIORITY 3: Titles that start with query
+      // Check if title starts with query
       const startsWithA = titleA.startsWith(queryLower);
       const startsWithB = titleB.startsWith(queryLower);
 
       if (startsWithA && !startsWithB) return -1;
       if (!startsWithA && startsWithB) return 1;
 
-      // PRIORITY 4: Popular publishers
-      const publisherA = (a.publisher || '').toLowerCase();
-      const publisherB = (b.publisher || '').toLowerCase();
-
-      const hasPopularPublisherA = popularPublishers.some(pub => publisherA.includes(pub));
-      const hasPopularPublisherB = popularPublishers.some(pub => publisherB.includes(pub));
-
-      if (hasPopularPublisherA && !hasPopularPublisherB) return -1;
-      if (!hasPopularPublisherA && hasPopularPublisherB) return 1;
-
-      // PRIORITY 5: Popularity (ratings × average rating)
+      // Otherwise sort by popularity (ratings × average rating)
       const popularityA = (a.ratingsCount || 0) * (a.averageRating || 0);
       const popularityB = (b.ratingsCount || 0) * (b.averageRating || 0);
       return popularityB - popularityA;
     });
 
-    // If we have enough quality results with covers, return them
-    // Otherwise fetch from OpenLibrary to supplement
-    if (sortedGoogleResults.length >= 8) {
+    // If we have enough results, return them
+    if (sortedGoogleResults.length >= 10) {
       return NextResponse.json(sortedGoogleResults);
     }
 
@@ -228,11 +184,10 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    // Combine results - prioritize books with covers
+    // Combine results
     const combined = [...sortedGoogleResults];
 
     transformedOpenLibraryResults.forEach((olBook) => {
-      // Check for duplicates
       const isDuplicate = combined.some(
         (gBook) =>
           gBook.title.toLowerCase() === olBook.title.toLowerCase() &&
@@ -244,18 +199,7 @@ export async function GET(request: NextRequest) {
       }
     });
 
-    // Sort combined results one more time to ensure books with covers come first
-    const finalResults = combined.sort((a, b) => {
-      const hasCoverA = a.cover && a.cover.length > 50; // Valid cover URL
-      const hasCoverB = b.cover && b.cover.length > 50;
-
-      if (hasCoverA && !hasCoverB) return -1;
-      if (!hasCoverA && hasCoverB) return 1;
-
-      return 0; // Keep original order
-    });
-
-    return NextResponse.json(finalResults.slice(0, 40));
+    return NextResponse.json(combined.slice(0, 40));
   } catch (error) {
     console.error("Book search error:", error);
     return NextResponse.json(
