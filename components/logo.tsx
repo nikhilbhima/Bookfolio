@@ -1,8 +1,6 @@
-import Link from "next/link";
-
 export function Logo({ className = "" }: { className?: string }) {
   return (
-    <Link href="/" className={`flex items-center gap-2 ${className} cursor-pointer hover:opacity-80 transition-opacity`}>
+    <a href="https://www.bookfolio.me/" className={`flex items-center gap-2 ${className} cursor-pointer hover:opacity-80 transition-opacity`}>
       <div className="relative">
         <svg
           width="32"
@@ -71,6 +69,6 @@ export function Logo({ className = "" }: { className?: string }) {
         </svg>
       </div>
       <span className="text-xl font-serif font-semibold">Bookfolio</span>
-    </Link>
+    </a>
   );
 }
