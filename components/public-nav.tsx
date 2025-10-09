@@ -22,11 +22,10 @@ export function PublicNav(_props: PublicNavProps) {
 
             <Link
               href="/"
-              className="relative overflow-hidden px-4 py-2 text-xs sm:text-sm font-semibold rounded-lg bg-gradient-to-r from-[#3b82f6]/20 to-pink-500/20 border border-[#3b82f6]/40 hover:border-[#3b82f6]/60 hover:scale-105 transition-all duration-300"
+              className="relative overflow-hidden px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold rounded-lg bg-gradient-to-r from-[#3b82f6]/20 to-pink-500/20 border border-[#3b82f6]/40 hover:border-[#3b82f6]/60 hover:scale-105 transition-all duration-300"
             >
               <span className="relative z-10">
-                <span className="hidden sm:inline">Create Your Bookfolio</span>
-                <span className="sm:hidden">Create</span>
+                Create Your Bookfolio
               </span>
               <div className="absolute inset-0 bg-gradient-to-r from-[#3b82f6]/0 via-[#3b82f6]/20 to-[#3b82f6]/0 animate-shimmer" />
             </Link>
