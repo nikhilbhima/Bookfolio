@@ -94,12 +94,6 @@ export function BooksGrid() {
     })
   );
 
-  // Get state values separately to avoid creating new arrays in selector
-  const books = useBookStore((state) => state.books);
-  const filter = useBookStore((state) => state.filter);
-  const searchQuery = useBookStore((state) => state.searchQuery);
-  const sortBy = useBookStore((state) => state.sortBy);
-
   // Compute filtered books using useMemo to prevent infinite loops
   const filteredBooks = React.useMemo(() => {
     let filtered = books;
