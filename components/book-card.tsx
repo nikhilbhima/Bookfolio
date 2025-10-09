@@ -80,7 +80,7 @@ export function BookCard({ book, view, isPublic = false }: BookCardProps) {
                   src={book.cover}
                   alt={book.title}
                   fill
-                  className="object-cover scale-105"
+                  className="object-cover"
                   onError={() => setImageError(true)}
                 />
               ) : (
@@ -216,7 +216,7 @@ export function BookCard({ book, view, isPublic = false }: BookCardProps) {
               src={book.cover}
               alt={book.title}
               fill
-              className="object-cover scale-105"
+              className="object-cover"
               onError={() => setImageError(true)}
             />
           ) : (

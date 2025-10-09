@@ -91,8 +91,11 @@ export async function searchGoogleBooks(
         "";
 
       // Replace http with https and increase size
+      // Remove edge=curl parameter to get covers without the page fold
       const secureCover = cover.replace("http://", "https://");
-      const largeCover = secureCover.replace("&zoom=1", "&zoom=2");
+      const largeCover = secureCover
+        .replace("&zoom=1", "&zoom=2")
+        .replace("&edge=curl", "");
 
       return {
         id: item.id,

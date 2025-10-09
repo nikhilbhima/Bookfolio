@@ -37,7 +37,7 @@ export function PublicBookCard({ book, onClick }: PublicBookCardProps) {
             src={book.cover}
             alt={book.title}
             fill
-            className="object-cover scale-105"
+            className="object-cover"
             onError={() => setImageError(true)}
           />
         ) : (
