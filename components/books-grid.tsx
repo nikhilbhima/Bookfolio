@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Grid3x3, List, ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { useBookStore } from "@/lib/store";
 import { Button } from "./ui/button";
@@ -94,10 +94,14 @@ export function BooksGrid() {
     })
   );
 
-  // Get filtered books - derive from state directly for proper reactivity
-  const filteredBooks = useBookStore((state) => {
-    const { books, filter, searchQuery, sortBy } = state;
+  // Get state values separately to avoid creating new arrays in selector
+  const books = useBookStore((state) => state.books);
+  const filter = useBookStore((state) => state.filter);
+  const searchQuery = useBookStore((state) => state.searchQuery);
+  const sortBy = useBookStore((state) => state.sortBy);
 
+  // Compute filtered books using useMemo to prevent infinite loops
+  const filteredBooks = React.useMemo(() => {
     let filtered = books;
 
     // Apply status filter
@@ -138,7 +142,7 @@ export function BooksGrid() {
     }
 
     return sorted;
-  });
+  }, [books, filter, searchQuery, sortBy]);
 
   // Pagination logic - 6 rows of 6 books = 36 books per page
   const booksPerPage = 36;
