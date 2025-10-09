@@ -85,7 +85,7 @@ export function BooksGrid() {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        delay: 250, // 250ms delay (works for both desktop and mobile)
+        delay: 100, // 100ms delay - responsive on desktop
         tolerance: 5, // 5px movement tolerance
       },
     }),
