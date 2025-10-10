@@ -202,8 +202,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(combined.slice(0, 40));
   } catch (error) {
     console.error("Book search error:", error);
+    const errorMessage = error instanceof Error ? error.message : "Failed to search books";
     return NextResponse.json(
-      { error: "Failed to search books" },
+      { error: errorMessage, details: String(error) },
       { status: 500 }
     );
   }
