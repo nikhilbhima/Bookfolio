@@ -156,8 +156,13 @@ export default function LandingPage() {
               <div className="text-sm text-muted-foreground">
                 © 2025 Bookfolio. All rights reserved.
               </div>
-              <div className="text-xs text-muted-foreground/70">
-                Built with Claude Code
+              <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground/70">
+                <span>Built with</span>
+                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M19.5 8.25l-7.5 7.5-7.5-7.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                </svg>
+                <span>Claude Code</span>
               </div>
             </div>
           </div>
