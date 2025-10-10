@@ -152,8 +152,21 @@ export default function LandingPage() {
             </div>
 
             {/* Copyright */}
-            <div className="text-center text-sm text-muted-foreground">
-              © 2025 Bookfolio. All rights reserved.
+            <div className="text-center space-y-2">
+              <div className="text-sm text-muted-foreground">
+                © 2025 Bookfolio. All rights reserved.
+              </div>
+              <div className="text-xs text-muted-foreground/70">
+                Built with{" "}
+                <a
+                  href="https://claude.ai/claude-code"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-foreground transition-colors underline decoration-dotted"
+                >
+                  Claude Code
+                </a>
+              </div>
             </div>
           </div>
         </div>
