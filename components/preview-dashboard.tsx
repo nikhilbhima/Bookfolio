@@ -7,9 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Search, Moon, Sun, BookOpen, BookMarked, CheckCircle2, Clock } from "lucide-react";
-import { getPlatformById, buildSocialUrl } from "@/lib/social-platforms";
+import { Search, Moon, Sun, BookOpen, BookMarked, CheckCircle2, Clock, Instagram } from "lucide-react";
 import { BookCard } from "@/components/book-card";
+import { XIcon } from "@/components/icons/x-icon";
 
 type BookStatus = "all" | "reading" | "completed" | "to-read";
 type SortBy = "newest" | "a-z" | "z-a" | "rating-high" | "rating-low";
@@ -19,6 +19,7 @@ export function PreviewDashboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortBy>("newest");
   const [previewTheme, setPreviewTheme] = useState<"light" | "dark">("dark");
+  const [showAllBooks, setShowAllBooks] = useState(false);
 
   // Convert preview books to match Book type format
   const convertedBooks = PREVIEW_BOOKS.map((book) => ({
@@ -252,26 +253,20 @@ export function PreviewDashboard() {
 
                       {/* Social Links */}
                       <div className="flex items-center gap-3 flex-wrap">
-                        {PREVIEW_PROFILE.socialLinks.map((link) => {
-                          const platform = getPlatformById(link.platform);
-                          if (!platform || !link.value) return null;
-
-                          const Icon = platform.icon;
-                          const url = buildSocialUrl(platform, link.value);
-
-                          return (
-                            <a
-                              key={link.id}
-                              href={url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-muted-foreground hover:text-foreground transition-colors"
-                              title={platform.label}
-                            >
-                              <Icon className="w-4 h-4" />
-                            </a>
-                          );
-                        })}
+                        <Link
+                          href="/socials"
+                          className="text-muted-foreground hover:text-foreground transition-colors"
+                          title="Instagram"
+                        >
+                          <Instagram className="w-4 h-4" />
+                        </Link>
+                        <Link
+                          href="/socials"
+                          className="text-muted-foreground hover:text-foreground transition-colors"
+                          title="X (Twitter)"
+                        >
+                          <XIcon className="w-4 h-4" />
+                        </Link>
                       </div>
                     </div>
                   </div>
@@ -419,10 +414,23 @@ export function PreviewDashboard() {
 
                 {/* Books Grid */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
-                  {filteredBooks.map((book) => (
+                  {(showAllBooks ? filteredBooks : filteredBooks.slice(0, 6)).map((book) => (
                     <BookCard key={book.id} book={book} view="grid" isPublic />
                   ))}
                 </div>
+
+                {/* Show More/Less Button - Mobile Only */}
+                {filteredBooks.length > 6 && (
+                  <div className="flex justify-center sm:hidden">
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowAllBooks(!showAllBooks)}
+                      className="text-sm"
+                    >
+                      {showAllBooks ? "Show Less" : `Show More (${filteredBooks.length - 6} more)`}
+                    </Button>
+                  </div>
+                )}
 
                 {/* CTA Button */}
                 <div className="flex justify-center pt-8 pb-4">
