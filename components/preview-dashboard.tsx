@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { PREVIEW_BOOKS, PREVIEW_PROFILE } from "@/lib/preview-data";
 import { Input } from "@/components/ui/input";
@@ -20,6 +20,15 @@ export function PreviewDashboard() {
   const [sortBy, setSortBy] = useState<SortBy>("newest");
   const [previewTheme, setPreviewTheme] = useState<"light" | "dark">("dark");
   const [showAllBooks, setShowAllBooks] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 640);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Convert preview books to match Book type format
   const convertedBooks = PREVIEW_BOOKS.map((book) => ({
@@ -253,20 +262,24 @@ export function PreviewDashboard() {
 
                       {/* Social Links */}
                       <div className="flex items-center gap-3 flex-wrap">
-                        <Link
-                          href="/socials"
+                        <a
+                          href="https://instagram.com"
+                          target="_blank"
+                          rel="noopener noreferrer"
                           className="text-muted-foreground hover:text-foreground transition-colors"
                           title="Instagram"
                         >
                           <Instagram className="w-4 h-4" />
-                        </Link>
-                        <Link
-                          href="/socials"
+                        </a>
+                        <a
+                          href="https://x.com"
+                          target="_blank"
+                          rel="noopener noreferrer"
                           className="text-muted-foreground hover:text-foreground transition-colors"
                           title="X (Twitter)"
                         >
                           <XIcon className="w-4 h-4" />
-                        </Link>
+                        </a>
                       </div>
                     </div>
                   </div>
@@ -414,7 +427,7 @@ export function PreviewDashboard() {
 
                 {/* Books Grid */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
-                  {(showAllBooks ? filteredBooks : filteredBooks.slice(0, 6)).map((book) => (
+                  {(isMobile && !showAllBooks ? filteredBooks.slice(0, 6) : filteredBooks).map((book) => (
                     <BookCard key={book.id} book={book} view="grid" isPublic />
                   ))}
                 </div>
