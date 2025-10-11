@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Edit, Trash2, Maximize2 } from "lucide-react";
+import { Edit, Trash2, Maximize2, GripVertical } from "lucide-react";
 import { Book } from "@/lib/mock-data";
 import { useBookStore } from "@/lib/store";
 import { Card } from "./ui/card";
@@ -11,14 +11,21 @@ import { DeleteConfirmDialog } from "./delete-confirm-dialog";
 import { BookDetailsModal } from "./book-details-modal";
 import { Checkbox } from "./ui/checkbox";
 import Image from "next/image";
+import type { DraggableAttributes } from "@dnd-kit/core";
+import type { SyntheticListenerMap } from "@dnd-kit/core/dist/hooks/utilities";
 
 interface BookCardProps {
   book: Book;
   view: "grid" | "list";
   isPublic?: boolean;
+  isDragging?: boolean;
+  isDragOverlay?: boolean;
+  dragAttributes?: DraggableAttributes;
+  dragListeners?: SyntheticListenerMap;
+  isMobile?: boolean;
 }
 
-export function BookCard({ book, view, isPublic = false }: BookCardProps) {
+export function BookCard({ book, view, isPublic = false, isDragging = false, isDragOverlay = false, dragAttributes, dragListeners }: BookCardProps) {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
@@ -181,18 +188,20 @@ export function BookCard({ book, view, isPublic = false }: BookCardProps) {
   return (
     <>
       <Card
-        className={`group relative overflow-hidden hover:shadow-lg transition-all duration-300 hover:scale-105 ${
+        className={`group relative overflow-hidden ${
+          !isDragging && !isDragOverlay ? 'transition-all duration-300 hover:shadow-lg hover:scale-105' : ''
+        } ${
           hoveredButton === 'edit' ? 'ring-2 ring-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.3)]' :
           hoveredButton === 'delete' ? 'ring-2 ring-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.3)]' : ''
         } ${isSelected ? 'ring-2 ring-blue-500' : ''}`}
-        onMouseEnter={() => setIsHovered(true)}
+        onMouseEnter={() => !isDragOverlay && !isDragging && setIsHovered(true)}
         onMouseLeave={() => {
           setIsHovered(false);
           setHoveredButton(null);
         }}
       >
-        {/* Checkbox - Show on hover or when selection mode is active (not in public mode) */}
-        {!isPublic && (isHovered || selectionMode || isSelected) && (
+        {/* Checkbox - Show on hover or when selection mode is active (not in public mode or during drag) */}
+        {!isPublic && !isDragOverlay && (isHovered || selectionMode || isSelected) && (
           <div
             className="absolute top-2 left-2 z-10"
             onClick={handleCheckboxClick}
@@ -202,6 +211,18 @@ export function BookCard({ book, view, isPublic = false }: BookCardProps) {
               className="bg-background/90 backdrop-blur-sm border-2"
             />
           </div>
+        )}
+
+        {/* Move/Drag Handle - Show on mobile/tablet when hovered or touched (top right) */}
+        {!isPublic && !isDragOverlay && !selectionMode && dragListeners && isHovered && (
+          <button
+            {...dragAttributes}
+            {...dragListeners}
+            className="absolute top-2 right-2 z-10 p-2 rounded-lg bg-background/90 backdrop-blur-sm border-2 border-border shadow-lg hover:bg-accent transition-colors touch-none cursor-grab active:cursor-grabbing sm:hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <GripVertical className="w-4 h-4 text-muted-foreground" />
+          </button>
         )}
 
         {/* Cover Image */}
@@ -225,11 +246,14 @@ export function BookCard({ book, view, isPublic = false }: BookCardProps) {
             </div>
           )}
 
-          {/* Hover Overlay with Action Buttons */}
-          {isHovered && !isPublic && (
-            <div className="absolute inset-0 bg-black/60 flex items-center justify-center gap-3 transition-all">
+          {/* Hover Overlay with Action Buttons - Desktop only */}
+          {isHovered && !isPublic && !isDragOverlay && (
+            <div className="absolute inset-0 bg-black/60 items-center justify-center gap-3 transition-all pointer-events-auto hidden sm:flex">
               <button
-                onClick={() => setIsEditOpen(true)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsEditOpen(true);
+                }}
                 onMouseEnter={() => setHoveredButton('edit')}
                 onMouseLeave={() => setHoveredButton(null)}
                 className="p-3 rounded-lg bg-blue-500/15 border border-blue-500/40 text-blue-400 hover:bg-blue-500/25 hover:border-blue-500/60 transition-all glow-blue-hover"
@@ -237,12 +261,39 @@ export function BookCard({ book, view, isPublic = false }: BookCardProps) {
                 <Edit className="w-4 h-4" />
               </button>
               <button
-                onClick={() => setIsDeleteOpen(true)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsDeleteOpen(true);
+                }}
                 onMouseEnter={() => setHoveredButton('delete')}
                 onMouseLeave={() => setHoveredButton(null)}
                 className="p-3 rounded-lg bg-red-500/15 border border-red-500/40 text-red-400 hover:bg-red-500/25 hover:border-red-500/60 transition-all"
               >
                 <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+
+          {/* Mobile Action Buttons - Show at bottom on mobile */}
+          {isHovered && !isPublic && !isDragOverlay && (
+            <div className="absolute bottom-2 left-2 right-2 flex items-center justify-center gap-2 sm:hidden pointer-events-auto">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsEditOpen(true);
+                }}
+                className="flex-1 p-2 rounded-lg bg-blue-500/90 backdrop-blur-sm border border-blue-400/60 text-white hover:bg-blue-600 transition-all shadow-lg"
+              >
+                <Edit className="w-3.5 h-3.5 mx-auto" />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsDeleteOpen(true);
+                }}
+                className="flex-1 p-2 rounded-lg bg-red-500/90 backdrop-blur-sm border border-red-400/60 text-white hover:bg-red-600 transition-all shadow-lg"
+              >
+                <Trash2 className="w-3.5 h-3.5 mx-auto" />
               </button>
             </div>
           )}
@@ -257,7 +308,7 @@ export function BookCard({ book, view, isPublic = false }: BookCardProps) {
           )}
 
           {/* Status Badge - Only show in "All Books" view */}
-          {filter === "all" && (
+          {filter === "all" && !isDragOverlay && (
             <div className="absolute top-2 right-2">
               <span
                 className={`px-2 py-0.5 text-xs rounded-full border backdrop-blur-sm ${

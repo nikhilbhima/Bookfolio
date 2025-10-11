@@ -16,6 +16,7 @@ import {
   DragEndEvent,
   DragStartEvent,
   DragOverlay,
+  MeasuringStrategy,
 } from "@dnd-kit/core";
 import {
   arrayMove,
@@ -30,9 +31,10 @@ import { Book } from "@/lib/mock-data";
 interface SortableBookCardProps {
   book: Book;
   view: "grid" | "list";
+  isMobile: boolean;
 }
 
-function SortableBookCard({ book, view }: SortableBookCardProps) {
+function SortableBookCard({ book, view, isMobile }: SortableBookCardProps) {
   const {
     attributes,
     listeners,
@@ -44,19 +46,29 @@ function SortableBookCard({ book, view }: SortableBookCardProps) {
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
+    transition: isDragging ? transition : transition,
+    opacity: isDragging ? 0.4 : 1,
+    zIndex: isDragging ? 999 : 'auto',
   };
+
+  // Desktop: entire card is draggable, Mobile: only handle is draggable
+  const desktopDragProps = !isMobile ? { ...attributes, ...listeners } : {};
 
   return (
     <div
       ref={setNodeRef}
       style={style}
-      {...attributes}
-      {...listeners}
-      className="relative cursor-grab active:cursor-grabbing"
+      className="relative"
+      {...desktopDragProps}
     >
-      <BookCard book={book} view={view} />
+      <BookCard
+        book={book}
+        view={view}
+        isDragging={isDragging}
+        dragAttributes={attributes}
+        dragListeners={listeners}
+        isMobile={isMobile}
+      />
     </div>
   );
 }
@@ -74,6 +86,18 @@ export function BooksGrid() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [isDragEnabled, setIsDragEnabled] = useState(true);
   const [isAddBookOpen, setIsAddBookOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile/desktop
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Check if drag should be enabled (only when no filters/search/sort applied)
   useEffect(() => {
@@ -81,18 +105,24 @@ export function BooksGrid() {
     setIsDragEnabled(shouldEnableDrag);
   }, [filter, searchQuery, sortBy]);
 
-  // Configure sensors - shorter delay for desktop, longer for mobile to prevent scroll conflicts
+  // Configure sensors - desktop uses pointer, mobile will use handle only
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        delay: 100, // 100ms delay - responsive on desktop
-        tolerance: 5, // 5px movement tolerance
+        distance: 8, // 8px movement required to start drag
       },
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
+
+  // Measuring configuration for smoother dragging
+  const measuring = {
+    droppable: {
+      strategy: MeasuringStrategy.Always,
+    },
+  };
 
   // Compute filtered books using useMemo to prevent infinite loops
   const filteredBooks = React.useMemo(() => {
@@ -243,18 +273,22 @@ export function BooksGrid() {
               onDragStart={handleDragStart}
               onDragEnd={handleDragEnd}
               onDragCancel={handleDragCancel}
+              measuring={measuring}
             >
               <SortableContext items={currentBooks.map((b) => b.id)} strategy={rectSortingStrategy}>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
                   {currentBooks.map((book) => (
-                    <SortableBookCard key={book.id} book={book} view={view} />
+                    <SortableBookCard key={book.id} book={book} view={view} isMobile={isMobile} />
                   ))}
                 </div>
               </SortableContext>
-              <DragOverlay>
+              <DragOverlay
+                dropAnimation={null}
+                style={{ cursor: 'grabbing' }}
+              >
                 {activeBook ? (
-                  <div className="opacity-90 rotate-3 scale-105">
-                    <BookCard book={activeBook} view={view} />
+                  <div className="opacity-100">
+                    <BookCard book={activeBook} view={view} isDragOverlay />
                   </div>
                 ) : null}
               </DragOverlay>
@@ -315,8 +349,11 @@ export function BooksGrid() {
           {/* Drag Instructions */}
           {isDragEnabled && view === "grid" && currentBooks.length > 0 && (
             <div className="text-center pt-4">
-              <p className="text-xs text-muted-foreground">
-                💡 Click and hold briefly, then drag any book to reorder
+              <p className="text-xs text-muted-foreground hidden sm:block">
+                💡 Drag any book to reorder your collection
+              </p>
+              <p className="text-xs text-muted-foreground sm:hidden">
+                💡 Tap a book and use the move icon to reorder
               </p>
             </div>
           )}
