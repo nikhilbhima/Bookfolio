@@ -440,7 +440,7 @@ export function PreviewDashboard() {
                       onClick={() => setShowAllBooks(!showAllBooks)}
                       className="text-sm"
                     >
-                      {showAllBooks ? "Show Less" : `Show More (${filteredBooks.length - 6} more)`}
+                      {showAllBooks ? "Show Less" : "Show More"}
                     </Button>
                   </div>
                 )}
