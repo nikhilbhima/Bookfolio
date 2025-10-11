@@ -46,9 +46,9 @@ function SortableBookCard({ book, view, isMobile }: SortableBookCardProps) {
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition: isDragging ? transition : transition,
-    opacity: isDragging ? 0.4 : 1,
-    zIndex: isDragging ? 999 : 'auto',
+    transition,
+    opacity: isDragging ? 0 : 1,
+    visibility: isDragging ? ('hidden' as const) : ('visible' as const),
   };
 
   // Desktop: entire card is draggable, Mobile: only handle is draggable
@@ -188,12 +188,18 @@ export function BooksGrid() {
       return;
     }
 
-    const oldIndex = books.findIndex((book) => book.id === active.id);
-    const newIndex = books.findIndex((book) => book.id === over.id);
+    const oldIndex = currentBooks.findIndex((book) => book.id === active.id);
+    const newIndex = currentBooks.findIndex((book) => book.id === over.id);
 
     if (oldIndex !== -1 && newIndex !== -1) {
-      const newBooks = arrayMove(books, oldIndex, newIndex);
-      reorderBooks(newBooks);
+      // Find indices in the full books array
+      const fullOldIndex = books.findIndex((book) => book.id === active.id);
+      const fullNewIndex = books.findIndex((book) => book.id === over.id);
+
+      if (fullOldIndex !== -1 && fullNewIndex !== -1) {
+        const newBooks = arrayMove(books, fullOldIndex, fullNewIndex);
+        reorderBooks(newBooks);
+      }
     }
   };
 
@@ -283,11 +289,13 @@ export function BooksGrid() {
                 </div>
               </SortableContext>
               <DragOverlay
-                dropAnimation={null}
-                style={{ cursor: 'grabbing' }}
+                dropAnimation={{
+                  duration: 200,
+                  easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)',
+                }}
               >
                 {activeBook ? (
-                  <div className="opacity-100">
+                  <div style={{ cursor: 'grabbing' }}>
                     <BookCard book={activeBook} view={view} isDragOverlay />
                   </div>
                 ) : null}
