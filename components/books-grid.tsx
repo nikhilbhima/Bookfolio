@@ -17,6 +17,7 @@ import {
   DragStartEvent,
   DragOverlay,
   MeasuringStrategy,
+  defaultDropAnimationSideEffects,
 } from "@dnd-kit/core";
 import {
   arrayMove,
@@ -47,8 +48,8 @@ function SortableBookCard({ book, view, isMobile }: SortableBookCardProps) {
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0 : 1,
-    visibility: isDragging ? ('hidden' as const) : ('visible' as const),
+    opacity: isDragging ? 0.5 : 1,
+    pointerEvents: isDragging ? ('none' as const) : ('auto' as const),
   };
 
   // Desktop: entire card is draggable, Mobile: only handle is draggable
@@ -297,18 +298,21 @@ export function BooksGrid() {
               </SortableContext>
               <DragOverlay
                 dropAnimation={{
-                  duration: 200,
-                  easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)',
+                  sideEffects: defaultDropAnimationSideEffects({
+                    styles: {
+                      active: {
+                        opacity: '0.5',
+                      },
+                    },
+                  }),
+                }}
+                style={{
+                  width: draggedItemSize.width || 'auto',
+                  height: draggedItemSize.height || 'auto',
                 }}
               >
                 {activeBook ? (
-                  <div
-                    style={{
-                      cursor: 'grabbing',
-                      width: draggedItemSize.width || 'auto',
-                      height: draggedItemSize.height || 'auto',
-                    }}
-                  >
+                  <div style={{ cursor: 'grabbing', width: '100%', height: '100%' }}>
                     <BookCard book={activeBook} view={view} isDragOverlay />
                   </div>
                 ) : null}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Edit, Trash2, Maximize2, GripVertical } from "lucide-react";
+import { Edit, Trash2, Maximize2, Move } from "lucide-react";
 import { Book } from "@/lib/mock-data";
 import { useBookStore } from "@/lib/store";
 import { Card } from "./ui/card";
@@ -218,10 +218,11 @@ export function BookCard({ book, view, isPublic = false, isDragging = false, isD
           <button
             {...dragAttributes}
             {...dragListeners}
-            className="absolute top-2 right-2 z-10 p-2 rounded-lg bg-background/90 backdrop-blur-sm border-2 border-border shadow-lg hover:bg-accent transition-colors touch-none cursor-grab active:cursor-grabbing sm:hidden"
+            className="absolute top-2 right-2 z-10 p-2.5 rounded-lg bg-background/95 backdrop-blur-sm border-2 border-primary/40 shadow-lg hover:bg-primary/10 hover:border-primary/60 transition-all touch-none cursor-grab active:cursor-grabbing sm:hidden"
             onClick={(e) => e.stopPropagation()}
+            aria-label="Drag to reorder"
           >
-            <GripVertical className="w-4 h-4 text-muted-foreground" />
+            <Move className="w-4 h-4 text-primary" />
           </button>
         )}
 
