@@ -54,7 +54,7 @@ export function InstallAppBanner() {
           <div className="flex items-center gap-2">
             <button
               onClick={handleGetApp}
-              className="text-xs font-semibold bg-white dark:bg-gray-900 text-blue-600 dark:text-blue-400 px-3 py-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className="text-xs font-semibold bg-white dark:bg-gray-900 text-blue-600 dark:text-blue-400 px-3 py-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             >
               Install
             </button>
