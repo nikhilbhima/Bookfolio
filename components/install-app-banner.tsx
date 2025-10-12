@@ -45,7 +45,7 @@ export function InstallAppBanner() {
 
   return (
     <>
-      <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-primary to-blue-600 text-white shadow-lg">
+      <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-500 dark:to-blue-600 text-white shadow-lg border-b border-blue-500/20">
         <div className="flex items-center justify-between px-4 py-2.5 max-w-7xl mx-auto">
           <div className="flex items-center gap-2 flex-1">
             <Smartphone className="w-4 h-4 flex-shrink-0" />
@@ -54,13 +54,13 @@ export function InstallAppBanner() {
           <div className="flex items-center gap-2">
             <button
               onClick={handleGetApp}
-              className="text-xs font-semibold bg-white text-primary px-3 py-1.5 rounded-md hover:bg-white/90 transition-colors"
+              className="text-xs font-semibold bg-white dark:bg-gray-900 text-blue-600 dark:text-blue-400 px-3 py-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             >
               Install
             </button>
             <button
               onClick={handleDismiss}
-              className="p-1 hover:bg-white/20 rounded transition-colors flex-shrink-0"
+              className="p-1 hover:bg-white/20 dark:hover:bg-white/10 rounded transition-colors flex-shrink-0"
               aria-label="Dismiss banner"
             >
               <X className="w-4 h-4" />
