@@ -1,6 +1,13 @@
 <svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="180" height="180" rx="40" fill="#000000"/>
-  <path d="M56 56H84C99.464 56 112 68.536 112 84V124H84C68.536 124 56 111.464 56 96V56Z" fill="#FFFFFF"/>
-  <path d="M112 56H124V124H112V56Z" fill="#FFFFFF" fill-opacity="0.7"/>
-  <circle cx="90" cy="90" r="4" fill="#FFFFFF"/>
+  <rect width="180" height="180" rx="39" fill="url(#logo-gradient)"/>
+  <rect x="34" y="56" width="62" height="84" rx="20" fill="white" opacity="0.95"/>
+  <rect x="101" y="39" width="45" height="45" rx="14" fill="#ff8a80" opacity="0.9"/>
+  <rect x="101" y="96" width="45" height="45" rx="14" fill="#69f0ae" opacity="0.85"/>
+  <defs>
+    <linearGradient id="logo-gradient" x1="0" y1="0" x2="180" y2="180" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#3b82f6"/>
+      <stop offset="0.5" stop-color="#2563eb"/>
+      <stop offset="1" stop-color="#1d4ed8"/>
+    </linearGradient>
+  </defs>
 </svg>
