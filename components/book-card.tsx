@@ -199,7 +199,7 @@ export function BookCard({ book, view, isPublic = false, onMoveStart, isMoveMode
           </div>
         )}
 
-        {!isPublic && onMoveStart && isHovered && (
+        {!isPublic && onMoveStart && (
           <div
             className="absolute top-2 right-2 z-10 sm:hidden"
             onClick={(e) => {

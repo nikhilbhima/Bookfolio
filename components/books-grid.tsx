@@ -232,54 +232,14 @@ export function BooksGrid() {
       startIndex = -1;
     };
 
-    // Touch event handlers
-    const handleTouchStart = (e: TouchEvent) => {
-      const touch = e.touches[0];
-      const mouseEvent = new MouseEvent('mousedown', {
-        clientX: touch.clientX,
-        clientY: touch.clientY,
-        bubbles: true,
-      }) as unknown as MouseEvent;
-      handleMouseDown(mouseEvent);
-    };
-
-    const handleTouchMove = (e: TouchEvent) => {
-      if (!draggedElement || !ghostElement) return;
-      e.preventDefault(); // Prevent scrolling while dragging
-      const touch = e.touches[0];
-      const mouseEvent = new MouseEvent('mousemove', {
-        clientX: touch.clientX,
-        clientY: touch.clientY,
-        bubbles: true,
-      }) as unknown as MouseEvent;
-      handleMouseMove(mouseEvent);
-    };
-
-    const handleTouchEnd = (e: TouchEvent) => {
-      if (!draggedElement || !ghostElement) return;
-      const touch = e.changedTouches[0];
-      const mouseEvent = new MouseEvent('mouseup', {
-        clientX: touch.clientX,
-        clientY: touch.clientY,
-        bubbles: true,
-      }) as unknown as MouseEvent;
-      handleMouseUp(mouseEvent);
-    };
-
     grid.addEventListener('mousedown', handleMouseDown);
-    grid.addEventListener('touchstart', handleTouchStart, { passive: false });
     document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('touchmove', handleTouchMove, { passive: false });
     document.addEventListener('mouseup', handleMouseUp);
-    document.addEventListener('touchend', handleTouchEnd);
 
     return () => {
       grid.removeEventListener('mousedown', handleMouseDown);
-      grid.removeEventListener('touchstart', handleTouchStart);
       document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('touchmove', handleTouchMove);
       document.removeEventListener('mouseup', handleMouseUp);
-      document.removeEventListener('touchend', handleTouchEnd);
     };
   }, [isDragEnabled, books, currentBooks, reorderBooks]);
 
