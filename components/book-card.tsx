@@ -207,7 +207,7 @@ export function BookCard({ book, view, isPublic = false, onMoveStart, isMoveMode
               onMoveStart();
             }}
           >
-            <div className="p-2 rounded-lg backdrop-blur-sm transition-all shadow-lg bg-background/90 border-2 border-border">
+            <div className="p-2 rounded-lg backdrop-blur-sm transition-all shadow-lg bg-background/90 border-2 border-border cursor-grab active:cursor-grabbing">
               <Move className="w-4 h-4 text-foreground" />
             </div>
           </div>
