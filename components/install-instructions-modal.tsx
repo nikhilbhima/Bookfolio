@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { X, Share, Plus, MoreVertical } from "lucide-react";
+import { Share, Plus, MoreVertical } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -67,14 +67,8 @@ export function InstallInstructionsModal({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md max-w-[90vw] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center justify-between">
+          <DialogTitle>
             Install Bookfolio
-            <button
-              onClick={onClose}
-              className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
           </DialogTitle>
         </DialogHeader>
 

@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { X, Smartphone } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { InstallInstructionsModal } from "@/components/install-instructions-modal";
 
 export function InstallAppBanner() {
@@ -53,17 +52,15 @@ export function InstallAppBanner() {
             <span className="text-sm font-medium">Get the Bookfolio app</span>
           </div>
           <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              variant="secondary"
+            <button
               onClick={handleGetApp}
-              className="text-xs px-3 py-1 h-7"
+              className="text-xs font-semibold bg-white text-primary px-3 py-1.5 rounded-md hover:bg-white/90 transition-colors"
             >
               Install
-            </Button>
+            </button>
             <button
               onClick={handleDismiss}
-              className="p-1 hover:bg-white/20 rounded transition-colors"
+              className="p-1 hover:bg-white/20 rounded transition-colors flex-shrink-0"
               aria-label="Dismiss banner"
             >
               <X className="w-4 h-4" />
