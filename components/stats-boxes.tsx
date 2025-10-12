@@ -52,10 +52,10 @@ export function StatsBoxes() {
       value: stats.toRead,
       icon: Clock,
       filter: "to-read" as const,
-      color: "text-blue-400",
-      bgColor: "bg-blue-500/10",
-      borderColor: "border-blue-500/30",
-      hoverClass: "glow-blue-hover",
+      color: "text-purple-400",
+      bgColor: "bg-purple-500/10",
+      borderColor: "border-purple-500/30",
+      hoverClass: "glow-purple-hover",
     },
   ];
 

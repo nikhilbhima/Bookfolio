@@ -43,9 +43,9 @@ export function PublicStatsBoxes() {
       label: "To Read",
       value: stats.toRead,
       icon: Clock,
-      color: "text-blue-400",
-      bgColor: "bg-blue-500/10",
-      borderColor: "border-blue-500/30",
+      color: "text-purple-400",
+      bgColor: "bg-purple-500/10",
+      borderColor: "border-purple-500/30",
     },
   ];
 
