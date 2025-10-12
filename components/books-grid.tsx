@@ -1,80 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Grid3x3, List, ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { useBookStore } from "@/lib/store";
 import { Button } from "./ui/button";
 import { BookCard } from "./book-card";
 import { AddBookModal } from "./add-book-modal";
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-  DragStartEvent,
-  DragOverlay,
-  MeasuringStrategy,
-  defaultDropAnimationSideEffects,
-  DragOverEvent,
-} from "@dnd-kit/core";
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  rectSortingStrategy,
-} from "@dnd-kit/sortable";
-import { useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 import { Book } from "@/lib/mock-data";
-
-interface SortableBookCardProps {
-  book: Book;
-  view: "grid" | "list";
-  isMobile: boolean;
-}
-
-function SortableBookCard({ book, view, isMobile }: SortableBookCardProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: book.id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-    pointerEvents: isDragging ? ('none' as const) : ('auto' as const),
-    touchAction: 'none',
-  };
-
-  // Desktop: entire card is draggable, Mobile: only handle is draggable
-  const desktopDragProps = !isMobile ? { ...attributes, ...listeners } : {};
-
-  return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className="relative"
-      {...desktopDragProps}
-    >
-      <BookCard
-        book={book}
-        view={view}
-        isDragging={isDragging}
-        dragAttributes={attributes}
-        dragListeners={listeners}
-        isMobile={isMobile}
-      />
-    </div>
-  );
-}
 
 export function BooksGrid() {
   const view = useBookStore((state) => state.view);
@@ -86,59 +18,22 @@ export function BooksGrid() {
   const sortBy = useBookStore((state) => state.sortBy);
   const isLoading = useBookStore((state) => state.isLoading);
   const [currentPage, setCurrentPage] = useState(1);
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const [isDragEnabled, setIsDragEnabled] = useState(true);
   const [isAddBookOpen, setIsAddBookOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const [activeCardSize, setActiveCardSize] = useState<{ width: number; height: number } | null>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
+  const [movingBookId, setMovingBookId] = useState<string | null>(null);
+  const [targetPosition, setTargetPosition] = useState<number | null>(null);
 
-  // Detect mobile/desktop
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 640);
-    };
+  // Check if drag should be enabled
+  const isDragEnabled = filter === "all" && !searchQuery && sortBy === "newest" && view === "grid";
 
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  // Check if drag should be enabled (only when no filters/search/sort applied)
-  useEffect(() => {
-    const shouldEnableDrag = filter === "all" && !searchQuery && sortBy === "newest";
-    setIsDragEnabled(shouldEnableDrag);
-  }, [filter, searchQuery, sortBy]);
-
-  // Configure sensors - desktop uses pointer, mobile will use handle only
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8, // 8px movement required to start drag
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
-
-  // Measuring configuration for smoother dragging
-  const measuring = {
-    droppable: {
-      strategy: MeasuringStrategy.Always,
-    },
-  };
-
-  // Compute filtered books using useMemo to prevent infinite loops
+  // Compute filtered books
   const filteredBooks = React.useMemo(() => {
     let filtered = books;
 
-    // Apply status filter
     if (filter !== "all") {
       filtered = filtered.filter((book) => book.status === filter);
     }
 
-    // Apply search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
@@ -149,7 +44,6 @@ export function BooksGrid() {
       );
     }
 
-    // Apply sorting
     const sorted = [...filtered];
     switch (sortBy) {
       case "a-z":
@@ -166,14 +60,13 @@ export function BooksGrid() {
         break;
       case "newest":
       default:
-        // Keep original order (newest first)
         break;
     }
 
     return sorted;
   }, [books, filter, searchQuery, sortBy]);
 
-  // Pagination logic - 6 rows of 6 books = 36 books per page
+  // Pagination
   const booksPerPage = 36;
   const totalPages = Math.ceil(filteredBooks.length / booksPerPage);
   const startIndex = (currentPage - 1) * booksPerPage;
@@ -181,58 +74,174 @@ export function BooksGrid() {
   const currentBooks = filteredBooks.slice(startIndex, endIndex);
   const shouldShowPagination = filteredBooks.length > booksPerPage;
 
-  const handleDragStart = (event: DragStartEvent) => {
-    setActiveId(event.active.id as string);
+  // Vanilla JavaScript Drag and Drop
+  useEffect(() => {
+    if (!isDragEnabled || !gridRef.current) return;
 
-    // Calculate initial offset from cursor to element's top-left corner and capture size
-    if (event.active.rect.current.translated) {
-      const rect = event.active.rect.current.translated;
-      const clientX = (event.activatorEvent as PointerEvent).clientX;
-      const clientY = (event.activatorEvent as PointerEvent).clientY;
+    const grid = gridRef.current;
+    let draggedElement: HTMLElement | null = null;
+    let ghostElement: HTMLElement | null = null;
+    let startX = 0;
+    let startY = 0;
+    let offsetX = 0;
+    let offsetY = 0;
+    let draggedBookId: string | null = null;
+    let startIndex = -1;
 
-      setDragOffset({
-        x: clientX - rect.left,
-        y: clientY - rect.top,
+    const handleMouseDown = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const bookCard = target.closest('[data-book-card]') as HTMLElement;
+
+      if (!bookCard) return;
+
+      draggedElement = bookCard;
+      draggedBookId = bookCard.getAttribute('data-book-id');
+      startIndex = parseInt(bookCard.getAttribute('data-book-index') || '-1');
+
+      const rect = bookCard.getBoundingClientRect();
+      offsetX = e.clientX - rect.left;
+      offsetY = e.clientY - rect.top;
+      startX = e.clientX;
+      startY = e.clientY;
+
+      // Create ghost element
+      ghostElement = bookCard.cloneNode(true) as HTMLElement;
+      ghostElement.style.position = 'fixed';
+      ghostElement.style.left = `${e.clientX - offsetX}px`;
+      ghostElement.style.top = `${e.clientY - offsetY}px`;
+      ghostElement.style.width = `${rect.width}px`;
+      ghostElement.style.height = `${rect.height}px`;
+      ghostElement.style.pointerEvents = 'none';
+      ghostElement.style.zIndex = '1000';
+      ghostElement.style.transform = 'scale(1.15)';
+      ghostElement.style.filter = 'drop-shadow(0 30px 60px rgba(0, 0, 0, 0.5)) brightness(1.1)';
+      ghostElement.style.transition = 'none';
+      document.body.appendChild(ghostElement);
+
+      // Make original semi-transparent
+      bookCard.style.opacity = '0.3';
+
+      e.preventDefault();
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!draggedElement || !ghostElement) return;
+
+      // Move ghost element with cursor
+      ghostElement.style.left = `${e.clientX - offsetX}px`;
+      ghostElement.style.top = `${e.clientY - offsetY}px`;
+
+      // Find drop target
+      const cards = grid.querySelectorAll('[data-book-card]');
+      let dropTarget: HTMLElement | null = null;
+
+      cards.forEach((card) => {
+        if (card === draggedElement) return;
+
+        const rect = card.getBoundingClientRect();
+        if (
+          e.clientX >= rect.left &&
+          e.clientX <= rect.right &&
+          e.clientY >= rect.top &&
+          e.clientY <= rect.bottom
+        ) {
+          dropTarget = card as HTMLElement;
+        }
       });
 
-      // Capture the exact size of the card being dragged
-      setActiveCardSize({
-        width: rect.width,
-        height: rect.height,
+      // Highlight drop target
+      cards.forEach((card) => {
+        if (card === draggedElement) return;
+        if (card === dropTarget) {
+          (card as HTMLElement).style.outline = '2px solid rgb(59, 130, 246)';
+          (card as HTMLElement).style.outlineOffset = '2px';
+        } else {
+          (card as HTMLElement).style.outline = '';
+          (card as HTMLElement).style.outlineOffset = '';
+        }
       });
-    }
-  };
+    };
 
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    setActiveId(null);
-    setActiveCardSize(null);
+    const handleMouseUp = (e: MouseEvent) => {
+      if (!draggedElement || !ghostElement) return;
 
-    if (!over || active.id === over.id) {
-      return;
-    }
+      // Find where we dropped
+      const cards = grid.querySelectorAll('[data-book-card]');
+      let dropIndex = -1;
 
-    const oldIndex = currentBooks.findIndex((book) => book.id === active.id);
-    const newIndex = currentBooks.findIndex((book) => book.id === over.id);
+      cards.forEach((card) => {
+        if (card === draggedElement) return;
 
-    if (oldIndex !== -1 && newIndex !== -1) {
-      // Find indices in the full books array
-      const fullOldIndex = books.findIndex((book) => book.id === active.id);
-      const fullNewIndex = books.findIndex((book) => book.id === over.id);
+        const rect = card.getBoundingClientRect();
+        if (
+          e.clientX >= rect.left &&
+          e.clientX <= rect.right &&
+          e.clientY >= rect.top &&
+          e.clientY <= rect.bottom
+        ) {
+          dropIndex = parseInt((card as HTMLElement).getAttribute('data-book-index') || '-1');
+        }
+      });
 
-      if (fullOldIndex !== -1 && fullNewIndex !== -1) {
-        const newBooks = arrayMove(books, fullOldIndex, fullNewIndex);
-        reorderBooks(newBooks);
+      // Reorder if dropped on different position
+      if (dropIndex !== -1 && dropIndex !== startIndex && draggedBookId) {
+        // Work with the full books array, not just currentBooks
+        const newBooks = [...books];
+
+        // Find the actual books being moved
+        const draggedBook = currentBooks[startIndex];
+        const targetBook = currentBooks[dropIndex];
+
+        // Find their positions in the full array
+        const draggedIndex = newBooks.findIndex(b => b.id === draggedBook.id);
+        const targetIndex = newBooks.findIndex(b => b.id === targetBook.id);
+
+        if (draggedIndex !== -1 && targetIndex !== -1) {
+          // Remove from old position
+          newBooks.splice(draggedIndex, 1);
+
+          // Find new position after removal
+          const newTargetIndex = newBooks.findIndex(b => b.id === targetBook.id);
+
+          // Insert at new position (after the target if moving forward, before if moving backward)
+          const insertIndex = draggedIndex < targetIndex ? newTargetIndex + 1 : newTargetIndex;
+          newBooks.splice(insertIndex, 0, draggedBook);
+
+          // Update the full books array
+          reorderBooks(newBooks);
+        }
       }
-    }
-  };
 
-  const handleDragCancel = () => {
-    setActiveId(null);
-    setActiveCardSize(null);
-  };
+      // Cleanup
+      if (ghostElement && ghostElement.parentNode) {
+        ghostElement.parentNode.removeChild(ghostElement);
+      }
+      if (draggedElement) {
+        draggedElement.style.opacity = '';
+      }
 
-  const activeBook = activeId ? books.find((book) => book.id === activeId) : null;
+      // Remove all outlines
+      cards.forEach((card) => {
+        (card as HTMLElement).style.outline = '';
+        (card as HTMLElement).style.outlineOffset = '';
+      });
+
+      draggedElement = null;
+      ghostElement = null;
+      draggedBookId = null;
+      startIndex = -1;
+    };
+
+    grid.addEventListener('mousedown', handleMouseDown);
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      grid.removeEventListener('mousedown', handleMouseDown);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragEnabled, books, currentBooks, reorderBooks]);
 
   return (
     <div className="space-y-3 sm:space-y-4">
@@ -241,7 +250,7 @@ export function BooksGrid() {
         <div className="flex items-center gap-2">
           {!isDragEnabled && view === "grid" && (
             <p className="text-xs text-muted-foreground">
-              💡 Drag disabled when filters/search/sort are active
+              Drag disabled when filters/search/sort are active
             </p>
           )}
         </div>
@@ -251,9 +260,7 @@ export function BooksGrid() {
             size="sm"
             onClick={() => setView("grid")}
             className={`gap-1 sm:gap-2 px-2 sm:px-3 ${
-              view === "grid"
-                ? "bg-background shadow-sm"
-                : "hover:bg-background/50"
+              view === "grid" ? "bg-background shadow-sm" : "hover:bg-background/50"
             }`}
           >
             <Grid3x3 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -264,9 +271,7 @@ export function BooksGrid() {
             size="sm"
             onClick={() => setView("list")}
             className={`gap-1 sm:gap-2 px-2 sm:px-3 ${
-              view === "list"
-                ? "bg-background shadow-sm"
-                : "hover:bg-background/50"
+              view === "list" ? "bg-background shadow-sm" : "hover:bg-background/50"
             }`}
           >
             <List className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -286,82 +291,51 @@ export function BooksGrid() {
           <p className="text-xs sm:text-sm text-muted-foreground mt-2 mb-4">
             Try adjusting your filters or add a new book
           </p>
-          <Button
-            onClick={() => setIsAddBookOpen(true)}
-            size="sm"
-            className="gap-2"
-          >
+          <Button onClick={() => setIsAddBookOpen(true)} size="sm" className="gap-2">
             <Plus className="h-4 w-4" />
             Add Book
           </Button>
         </div>
       ) : (
         <>
-          {isDragEnabled && view === "grid" ? (
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragStart={handleDragStart}
-              onDragEnd={handleDragEnd}
-              onDragCancel={handleDragCancel}
-              measuring={measuring}
-            >
-              <SortableContext items={currentBooks.map((b) => b.id)} strategy={rectSortingStrategy}>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
-                  {currentBooks.map((book) => (
-                    <SortableBookCard key={book.id} book={book} view={view} isMobile={isMobile} />
-                  ))}
-                </div>
-              </SortableContext>
-              <DragOverlay
-                dropAnimation={{
-                  sideEffects: defaultDropAnimationSideEffects({
-                    styles: {
-                      active: {
-                        opacity: '0.5',
-                      },
-                    },
-                  }),
+          <div
+            ref={gridRef}
+            className={
+              view === "grid"
+                ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 relative"
+                : "space-y-2"
+            }
+          >
+            {currentBooks.map((book, index) => (
+              <div
+                key={book.id}
+                data-book-card
+                data-book-id={book.id}
+                data-book-index={index}
+                className={`
+                  ${isDragEnabled && view === "grid" ? "cursor-grab active:cursor-grabbing" : ""}
+                  transition-opacity duration-200
+                  ${movingBookId === book.id ? "opacity-50" : ""}
+                  ${targetPosition === index && movingBookId ? "ring-2 ring-blue-500 ring-offset-2" : ""}
+                `}
+                onClick={() => {
+                  if (movingBookId && movingBookId !== book.id) {
+                    setTargetPosition(index);
+                  }
                 }}
-                modifiers={[
-                  (args) => {
-                    return {
-                      ...args.transform,
-                      x: args.transform.x - dragOffset.x,
-                      y: args.transform.y - dragOffset.y,
-                    };
-                  },
-                ]}
               >
-                {activeBook && activeCardSize ? (
-                  <div
-                    style={{
-                      cursor: 'grabbing',
-                      width: `${activeCardSize.width}px`,
-                      height: `${activeCardSize.height}px`,
-                      pointerEvents: 'none',
-                    }}
-                  >
-                    <div style={{ width: '100%', height: '100%' }}>
-                      <BookCard book={activeBook} view={view} isDragOverlay />
-                    </div>
-                  </div>
-                ) : null}
-              </DragOverlay>
-            </DndContext>
-          ) : (
-            <div
-              className={
-                view === "grid"
-                  ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4"
-                  : "space-y-2"
-              }
-            >
-              {currentBooks.map((book) => (
-                <BookCard key={book.id} book={book} view={view} />
-              ))}
-            </div>
-          )}
+                <BookCard
+                  book={book}
+                  view={view}
+                  onMoveStart={isDragEnabled ? () => {
+                    setMovingBookId(book.id);
+                    setTargetPosition(null);
+                  } : undefined}
+                  isMoveMode={movingBookId === book.id}
+                />
+              </div>
+            ))}
+          </div>
 
           {/* Pagination */}
           {shouldShowPagination && (
@@ -369,7 +343,7 @@ export function BooksGrid() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                 disabled={currentPage === 1}
                 className="h-9 w-9 p-0"
               >
@@ -393,7 +367,7 @@ export function BooksGrid() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
                 disabled={currentPage === totalPages}
                 className="h-9 w-9 p-0"
               >
@@ -402,21 +376,82 @@ export function BooksGrid() {
             </div>
           )}
 
+          {/* Move Mode UI */}
+          {movingBookId && (
+            <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-background border-2 border-border px-6 py-3 rounded-full shadow-2xl flex items-center gap-4">
+              <p className="text-sm font-medium text-foreground">
+                {targetPosition !== null ? "Tap Confirm to move" : "Tap where you want to move the book"}
+              </p>
+              <div className="flex gap-2">
+                {targetPosition !== null && (
+                  <Button
+                    size="sm"
+                    variant="default"
+                    onClick={() => {
+                      if (targetPosition !== null) {
+                        const startIndex = currentBooks.findIndex((b) => b.id === movingBookId);
+                        if (startIndex !== -1 && startIndex !== targetPosition) {
+                          // Work with the full books array
+                          const newBooks = [...books];
+
+                          // Find the actual books being moved
+                          const draggedBook = currentBooks[startIndex];
+                          const targetBook = currentBooks[targetPosition];
+
+                          // Find their positions in the full array
+                          const draggedIndex = newBooks.findIndex(b => b.id === draggedBook.id);
+                          const targetIndex = newBooks.findIndex(b => b.id === targetBook.id);
+
+                          if (draggedIndex !== -1 && targetIndex !== -1) {
+                            // Remove from old position
+                            newBooks.splice(draggedIndex, 1);
+
+                            // Find new position after removal
+                            const newTargetIndex = newBooks.findIndex(b => b.id === targetBook.id);
+
+                            // Insert at new position
+                            const insertIndex = draggedIndex < targetIndex ? newTargetIndex + 1 : newTargetIndex;
+                            newBooks.splice(insertIndex, 0, draggedBook);
+
+                            reorderBooks(newBooks);
+                          }
+                        }
+                      }
+                      setMovingBookId(null);
+                      setTargetPosition(null);
+                    }}
+                  >
+                    Confirm
+                  </Button>
+                )}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    setMovingBookId(null);
+                    setTargetPosition(null);
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          )}
+
           {/* Drag Instructions */}
-          {isDragEnabled && view === "grid" && currentBooks.length > 0 && (
+          {isDragEnabled && view === "grid" && currentBooks.length > 0 && !movingBookId && (
             <div className="text-center pt-4">
               <p className="text-xs text-muted-foreground hidden sm:block">
-                💡 Drag any book to reorder your collection
+                Click and drag any book to reorder your collection
               </p>
               <p className="text-xs text-muted-foreground sm:hidden">
-                💡 Tap a book and use the move icon to reorder
+                Tap a book and click the move icon to reorder
               </p>
             </div>
           )}
         </>
       )}
 
-      {/* Add Book Modal */}
       <AddBookModal isOpen={isAddBookOpen} onClose={() => setIsAddBookOpen(false)} />
     </div>
   );

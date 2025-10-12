@@ -11,21 +11,16 @@ import { DeleteConfirmDialog } from "./delete-confirm-dialog";
 import { BookDetailsModal } from "./book-details-modal";
 import { Checkbox } from "./ui/checkbox";
 import Image from "next/image";
-import type { DraggableAttributes } from "@dnd-kit/core";
-import type { SyntheticListenerMap } from "@dnd-kit/core/dist/hooks/utilities";
 
 interface BookCardProps {
   book: Book;
   view: "grid" | "list";
   isPublic?: boolean;
-  isDragging?: boolean;
-  isDragOverlay?: boolean;
-  dragAttributes?: DraggableAttributes;
-  dragListeners?: SyntheticListenerMap;
-  isMobile?: boolean;
+  onMoveStart?: () => void;
+  isMoveMode?: boolean;
 }
 
-export function BookCard({ book, view, isPublic = false, isDragging = false, isDragOverlay = false, dragAttributes, dragListeners }: BookCardProps) {
+export function BookCard({ book, view, isPublic = false, onMoveStart, isMoveMode = false }: BookCardProps) {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
@@ -75,12 +70,10 @@ export function BookCard({ book, view, isPublic = false, isDragging = false, isD
           }}
         >
           <div className="flex items-center gap-2 sm:gap-4 p-3 sm:p-4 cursor-pointer" onClick={(e) => {
-            // Don't open details if clicking on action buttons
             if (!(e.target as HTMLElement).closest('button')) {
               setIsDetailsOpen(true);
             }
           }}>
-            {/* Cover Image */}
             <div className="relative w-12 h-16 sm:w-16 sm:h-24 flex-shrink-0 rounded overflow-hidden bg-muted">
               {!imageError ? (
                 <Image
@@ -97,7 +90,6 @@ export function BookCard({ book, view, isPublic = false, isDragging = false, isD
               )}
             </div>
 
-            {/* Book Info */}
             <div className="flex-1 min-w-0">
               <h3 className="font-semibold text-sm sm:text-base truncate">{book.title}</h3>
               <p className="text-xs sm:text-sm text-muted-foreground truncate">
@@ -110,14 +102,12 @@ export function BookCard({ book, view, isPublic = false, isDragging = false, isD
               )}
             </div>
 
-            {/* Rating */}
             {book.rating > 0 && (
               <div className="hidden sm:flex flex-shrink-0">
                 <StarRating rating={book.rating} readonly size="sm" />
               </div>
             )}
 
-            {/* Status Badge - Only show in "All Books" view */}
             {filter === "all" && (
               <div className="flex-shrink-0">
                 <span
@@ -130,7 +120,6 @@ export function BookCard({ book, view, isPublic = false, isDragging = false, isD
               </div>
             )}
 
-            {/* Action Buttons */}
             {isHovered && (
               <div className="flex-shrink-0 flex items-center gap-1 sm:gap-2">
                 <button
@@ -188,23 +177,17 @@ export function BookCard({ book, view, isPublic = false, isDragging = false, isD
   return (
     <>
       <Card
-        className={`group relative overflow-hidden ${
-          !isDragging && !isDragOverlay ? 'transition-all duration-300 hover:shadow-lg hover:scale-105' : ''
-        } ${
-          isDragOverlay ? 'shadow-2xl' : ''
-        } ${
+        className={`group relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-105 ${
           hoveredButton === 'edit' ? 'ring-2 ring-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.3)]' :
           hoveredButton === 'delete' ? 'ring-2 ring-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.3)]' : ''
-        } ${isSelected ? 'ring-2 ring-blue-500' : ''}`}
-        style={isDragOverlay ? { width: '100%', height: '100%' } : undefined}
-        onMouseEnter={() => !isDragOverlay && !isDragging && setIsHovered(true)}
+        } ${isSelected ? 'ring-2 ring-blue-500' : ''} ${isMoveMode ? 'ring-2 ring-blue-500 ring-offset-2' : ''}`}
+        onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => {
           setIsHovered(false);
           setHoveredButton(null);
         }}
       >
-        {/* Checkbox - Show on hover or when selection mode is active (not in public mode or during drag) */}
-        {!isPublic && !isDragOverlay && (isHovered || selectionMode || isSelected) && (
+        {!isPublic && (isHovered || selectionMode || isSelected) && (
           <div
             className="absolute top-2 left-2 z-10"
             onClick={handleCheckboxClick}
@@ -216,22 +199,21 @@ export function BookCard({ book, view, isPublic = false, isDragging = false, isD
           </div>
         )}
 
-        {/* Move/Drag Handle - Show on mobile/tablet when hovered or touched (top right) */}
-        {!isPublic && !isDragOverlay && !selectionMode && dragListeners && isHovered && (
-          <button
-            {...dragAttributes}
-            {...dragListeners}
-            className="absolute top-2 right-2 z-10 p-2.5 rounded-lg bg-background/95 backdrop-blur-sm border-2 border-primary/40 shadow-lg hover:bg-primary/10 hover:border-primary/60 transition-all touch-none cursor-grab active:cursor-grabbing sm:hidden"
-            onClick={(e) => e.stopPropagation()}
-            aria-label="Drag to reorder"
+        {!isPublic && onMoveStart && isHovered && (
+          <div
+            className="absolute top-2 right-2 z-10 sm:hidden"
+            onClick={(e) => {
+              e.stopPropagation();
+              onMoveStart();
+            }}
           >
-            <Move className="w-4 h-4 text-primary" />
-          </button>
+            <div className="p-2 rounded-lg backdrop-blur-sm transition-all shadow-lg bg-background/90 border-2 border-border">
+              <Move className="w-4 h-4 text-foreground" />
+            </div>
+          </div>
         )}
 
-        {/* Cover Image */}
         <div className="relative aspect-[2/3] bg-muted cursor-pointer overflow-hidden rounded-t-lg" onClick={(e) => {
-          // Don't open details if clicking on action buttons or checkbox
           if (!(e.target as HTMLElement).closest('button') && !(e.target as HTMLElement).closest('[role="checkbox"]')) {
             setIsDetailsOpen(true);
           }
@@ -250,8 +232,7 @@ export function BookCard({ book, view, isPublic = false, isDragging = false, isD
             </div>
           )}
 
-          {/* Hover Overlay with Action Buttons - Desktop only */}
-          {isHovered && !isPublic && !isDragOverlay && (
+          {isHovered && !isPublic && (
             <div className="absolute inset-0 bg-black/60 items-center justify-center gap-3 transition-all pointer-events-auto hidden sm:flex">
               <button
                 onClick={(e) => {
@@ -278,8 +259,7 @@ export function BookCard({ book, view, isPublic = false, isDragging = false, isD
             </div>
           )}
 
-          {/* Mobile Action Buttons - Show at bottom on mobile */}
-          {isHovered && !isPublic && !isDragOverlay && (
+          {isHovered && !isPublic && (
             <div className="absolute bottom-2 left-2 right-2 flex items-center justify-center gap-2 sm:hidden pointer-events-auto">
               <button
                 onClick={(e) => {
@@ -302,7 +282,6 @@ export function BookCard({ book, view, isPublic = false, isDragging = false, isD
             </div>
           )}
 
-          {/* Public Mode - Expand Icon on Hover */}
           {isHovered && isPublic && (
             <div className="absolute inset-0 bg-black/60 flex items-center justify-center transition-all">
               <div className="p-4 rounded-full bg-white/20 border border-white/40 text-white">
@@ -311,8 +290,7 @@ export function BookCard({ book, view, isPublic = false, isDragging = false, isD
             </div>
           )}
 
-          {/* Status Badge - Only show in "All Books" view */}
-          {filter === "all" && !isDragOverlay && (
+          {filter === "all" && (
             <div className="absolute top-2 right-2">
               <span
                 className={`px-2 py-0.5 text-xs rounded-full border backdrop-blur-sm ${
@@ -325,7 +303,6 @@ export function BookCard({ book, view, isPublic = false, isDragging = false, isD
           )}
         </div>
 
-        {/* Book Info */}
         <div className="p-3 cursor-pointer" onClick={(e) => {
           if (!(e.target as HTMLElement).closest('button')) {
             setIsDetailsOpen(true);
