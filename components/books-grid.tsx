@@ -239,8 +239,8 @@ export function BooksGrid() {
         clientX: touch.clientX,
         clientY: touch.clientY,
         bubbles: true,
-      });
-      handleMouseDown(mouseEvent as any);
+      }) as unknown as MouseEvent;
+      handleMouseDown(mouseEvent);
     };
 
     const handleTouchMove = (e: TouchEvent) => {
@@ -251,8 +251,8 @@ export function BooksGrid() {
         clientX: touch.clientX,
         clientY: touch.clientY,
         bubbles: true,
-      });
-      handleMouseMove(mouseEvent as any);
+      }) as unknown as MouseEvent;
+      handleMouseMove(mouseEvent);
     };
 
     const handleTouchEnd = (e: TouchEvent) => {
@@ -262,8 +262,8 @@ export function BooksGrid() {
         clientX: touch.clientX,
         clientY: touch.clientY,
         bubbles: true,
-      });
-      handleMouseUp(mouseEvent as any);
+      }) as unknown as MouseEvent;
+      handleMouseUp(mouseEvent);
     };
 
     grid.addEventListener('mousedown', handleMouseDown);
