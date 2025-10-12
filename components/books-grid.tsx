@@ -88,7 +88,6 @@ export function BooksGrid() {
   const [isDragEnabled, setIsDragEnabled] = useState(true);
   const [isAddBookOpen, setIsAddBookOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [draggedItemSize, setDraggedItemSize] = useState({ width: 0, height: 0 });
 
   // Detect mobile/desktop
   useEffect(() => {
@@ -180,12 +179,6 @@ export function BooksGrid() {
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id as string);
-
-    // Get the dimensions of the element being dragged
-    const draggedElement = event.active.rect.current.translated;
-    if (draggedElement) {
-      setDraggedItemSize({ width: draggedElement.width, height: draggedElement.height });
-    }
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -306,13 +299,9 @@ export function BooksGrid() {
                     },
                   }),
                 }}
-                style={{
-                  width: draggedItemSize.width || 'auto',
-                  height: draggedItemSize.height || 'auto',
-                }}
               >
                 {activeBook ? (
-                  <div style={{ cursor: 'grabbing', width: '100%', height: '100%' }}>
+                  <div style={{ cursor: 'grabbing' }}>
                     <BookCard book={activeBook} view={view} isDragOverlay />
                   </div>
                 ) : null}
