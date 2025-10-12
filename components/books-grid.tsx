@@ -18,6 +18,7 @@ import {
   DragOverlay,
   MeasuringStrategy,
   defaultDropAnimationSideEffects,
+  DragOverEvent,
 } from "@dnd-kit/core";
 import {
   arrayMove,
@@ -50,6 +51,7 @@ function SortableBookCard({ book, view, isMobile }: SortableBookCardProps) {
     transition,
     opacity: isDragging ? 0.5 : 1,
     pointerEvents: isDragging ? ('none' as const) : ('auto' as const),
+    touchAction: 'none',
   };
 
   // Desktop: entire card is draggable, Mobile: only handle is draggable
@@ -88,6 +90,8 @@ export function BooksGrid() {
   const [isDragEnabled, setIsDragEnabled] = useState(true);
   const [isAddBookOpen, setIsAddBookOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [activeCardSize, setActiveCardSize] = useState<{ width: number; height: number } | null>(null);
 
   // Detect mobile/desktop
   useEffect(() => {
@@ -179,11 +183,30 @@ export function BooksGrid() {
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id as string);
+
+    // Calculate initial offset from cursor to element's top-left corner and capture size
+    if (event.active.rect.current.translated) {
+      const rect = event.active.rect.current.translated;
+      const clientX = (event.activatorEvent as PointerEvent).clientX;
+      const clientY = (event.activatorEvent as PointerEvent).clientY;
+
+      setDragOffset({
+        x: clientX - rect.left,
+        y: clientY - rect.top,
+      });
+
+      // Capture the exact size of the card being dragged
+      setActiveCardSize({
+        width: rect.width,
+        height: rect.height,
+      });
+    }
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     setActiveId(null);
+    setActiveCardSize(null);
 
     if (!over || active.id === over.id) {
       return;
@@ -206,6 +229,7 @@ export function BooksGrid() {
 
   const handleDragCancel = () => {
     setActiveId(null);
+    setActiveCardSize(null);
   };
 
   const activeBook = activeId ? books.find((book) => book.id === activeId) : null;
@@ -299,10 +323,28 @@ export function BooksGrid() {
                     },
                   }),
                 }}
+                modifiers={[
+                  (args) => {
+                    return {
+                      ...args.transform,
+                      x: args.transform.x - dragOffset.x,
+                      y: args.transform.y - dragOffset.y,
+                    };
+                  },
+                ]}
               >
-                {activeBook ? (
-                  <div style={{ cursor: 'grabbing' }}>
-                    <BookCard book={activeBook} view={view} isDragOverlay />
+                {activeBook && activeCardSize ? (
+                  <div
+                    style={{
+                      cursor: 'grabbing',
+                      width: `${activeCardSize.width}px`,
+                      height: `${activeCardSize.height}px`,
+                      pointerEvents: 'none',
+                    }}
+                  >
+                    <div style={{ width: '100%', height: '100%' }}>
+                      <BookCard book={activeBook} view={view} isDragOverlay />
+                    </div>
                   </div>
                 ) : null}
               </DragOverlay>

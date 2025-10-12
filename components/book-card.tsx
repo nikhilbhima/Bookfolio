@@ -191,9 +191,12 @@ export function BookCard({ book, view, isPublic = false, isDragging = false, isD
         className={`group relative overflow-hidden ${
           !isDragging && !isDragOverlay ? 'transition-all duration-300 hover:shadow-lg hover:scale-105' : ''
         } ${
+          isDragOverlay ? 'shadow-2xl' : ''
+        } ${
           hoveredButton === 'edit' ? 'ring-2 ring-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.3)]' :
           hoveredButton === 'delete' ? 'ring-2 ring-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.3)]' : ''
         } ${isSelected ? 'ring-2 ring-blue-500' : ''}`}
+        style={isDragOverlay ? { width: '100%', height: '100%' } : undefined}
         onMouseEnter={() => !isDragOverlay && !isDragging && setIsHovered(true)}
         onMouseLeave={() => {
           setIsHovered(false);
