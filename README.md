@@ -128,10 +128,6 @@ bookfolio/
 - Environment variables for sensitive data
 - HTTPS in production
 
-## License
-
-MIT License - see [LICENSE](LICENSE)
-
 ## Author
 
 Nikhil Bhima
