@@ -46,7 +46,7 @@ export function BookCard({ book, view, isPublic = false, onMoveStart, isMoveMode
   const statusColors = {
     reading: "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300",
     completed: "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
-    "to-read": "border-purple-500/30 bg-purple-500/10 text-purple-700 dark:text-purple-300",
+    "to-read": "border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-300",
   };
 
   const statusLabels = {
