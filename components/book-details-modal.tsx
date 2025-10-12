@@ -32,7 +32,7 @@ export function BookDetailsModal({
   const statusColors = {
     reading: "bg-amber-500/10 text-amber-500 border-amber-500/20",
     completed: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
-    "to-read": "bg-blue-500/10 text-blue-500 border-blue-500/20",
+    "to-read": "bg-purple-500/10 text-purple-500 border-purple-500/20",
   };
 
   const statusLabels = {
