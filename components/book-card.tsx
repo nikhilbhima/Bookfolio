@@ -16,11 +16,10 @@ interface BookCardProps {
   book: Book;
   view: "grid" | "list";
   isPublic?: boolean;
-  onMoveStart?: () => void;
   isMoveMode?: boolean;
 }
 
-export function BookCard({ book, view, isPublic = false, onMoveStart, isMoveMode = false }: BookCardProps) {
+export function BookCard({ book, view, isPublic = false, isMoveMode = false }: BookCardProps) {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
@@ -42,6 +41,28 @@ export function BookCard({ book, view, isPublic = false, onMoveStart, isMoveMode
     }
     toggleSelection(book.id);
   };
+
+  // Add effect to close buttons when clicking outside on mobile
+  React.useEffect(() => {
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
+      if (isHovered && window.innerWidth < 640) {
+        const target = e.target as HTMLElement;
+        if (!target.closest('[data-book-card-content]')) {
+          setIsHovered(false);
+        }
+      }
+    };
+
+    if (isHovered) {
+      document.addEventListener('click', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [isHovered]);
 
   const statusColors = {
     reading: "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300",
@@ -174,28 +195,6 @@ export function BookCard({ book, view, isPublic = false, onMoveStart, isMoveMode
   }
 
   // Grid View
-  // Add effect to close buttons when clicking outside on mobile
-  React.useEffect(() => {
-    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
-      if (isHovered && window.innerWidth < 640) {
-        const target = e.target as HTMLElement;
-        if (!target.closest('[data-book-card-content]')) {
-          setIsHovered(false);
-        }
-      }
-    };
-
-    if (isHovered) {
-      document.addEventListener('click', handleClickOutside);
-      document.addEventListener('touchstart', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('click', handleClickOutside);
-      document.removeEventListener('touchstart', handleClickOutside);
-    };
-  }, [isHovered]);
-
   return (
     <>
       <Card

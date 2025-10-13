@@ -327,10 +327,6 @@ export function BooksGrid() {
                 <BookCard
                   book={book}
                   view={view}
-                  onMoveStart={isDragEnabled ? () => {
-                    setMovingBookId(book.id);
-                    setTargetPosition(null);
-                  } : undefined}
                   isMoveMode={movingBookId === book.id}
                 />
               </div>
