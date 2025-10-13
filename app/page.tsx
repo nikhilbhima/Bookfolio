@@ -1,10 +1,31 @@
+"use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Logo } from "@/components/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { PreviewDashboard } from "@/components/preview-dashboard";
+import { createClient } from "@/lib/supabase";
 
 export default function LandingPage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (user) {
+        // User is logged in, redirect to dashboard
+        router.push("/dashboard");
+      }
+    };
+
+    checkAuth();
+  }, [router]);
+
   return (
     <div className="min-h-screen flex flex-col">
       {/* Navigation */}
