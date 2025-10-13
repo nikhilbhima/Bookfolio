@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { Book, UserProfile, mockBooks, mockProfile } from "./mock-data";
+import { Book, UserProfile, mockProfile } from "./mock-data";
 import * as db from "./database";
 
 interface BookStore {

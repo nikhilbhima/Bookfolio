@@ -209,7 +209,7 @@ export function BookCard({ book, view, isPublic = false, onMoveStart, isMoveMode
               setIsDetailsOpen(true);
             }
           }}
-          onTouchStart={(e) => {
+          onTouchStart={() => {
             // Start timer for long press (1.5 seconds)
             longPressTimerRef.current = setTimeout(() => {
               setIsLongPress(true);
@@ -282,7 +282,7 @@ export function BookCard({ book, view, isPublic = false, onMoveStart, isMoveMode
             <div className="absolute bottom-2 left-2 right-2 flex items-center justify-center gap-2 sm:hidden pointer-events-auto">
               {onMoveStart && isLongPress && (
                 <button
-                  onTouchStart={(e) => {
+                  onTouchStart={() => {
                     // Don't stop propagation - let it bubble to the grid for drag handling
                   }}
                   className="flex-1 p-2 rounded-lg bg-purple-500/90 backdrop-blur-sm border border-purple-400/60 text-white hover:bg-purple-600 transition-all shadow-lg"

@@ -12,7 +12,7 @@ Live at [bookfolio.me](https://www.bookfolio.me)
 - Share your collection via a public profile page
 - Search millions of books using Google Books and OpenLibrary APIs
 - Organize books by genre, status, or rating
-- Drag and drop to reorder your book collection
+- Drag and drop to reorder your book collection (desktop: click & drag, mobile: 1.5s hold & drag)
 - Dark and light theme support
 - Fully responsive mobile design
 - **Progressive Web App (PWA)** - Install on iOS and Android for app-like experience
@@ -25,7 +25,7 @@ Live at [bookfolio.me](https://www.bookfolio.me)
 - Tailwind CSS
 - Supabase (PostgreSQL + Auth)
 - Zustand for state management
-- @dnd-kit for drag and drop
+- Native HTML5 drag-and-drop with touch support
 - PWA with service worker and offline support
 - Deployed on Vercel
 

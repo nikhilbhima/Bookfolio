@@ -6,7 +6,6 @@ import { useBookStore } from "@/lib/store";
 import { Button } from "./ui/button";
 import { BookCard } from "./book-card";
 import { AddBookModal } from "./add-book-modal";
-import { Book } from "@/lib/mock-data";
 
 export function BooksGrid() {
   const view = useBookStore((state) => state.view);
@@ -481,7 +480,7 @@ export function BooksGrid() {
                 Click and drag any book to reorder your collection
               </p>
               <p className="text-xs text-muted-foreground sm:hidden">
-                Tap a book and click the move icon to reorder
+                Hold a book for 1.5s to drag and reorder
               </p>
             </div>
           )}
