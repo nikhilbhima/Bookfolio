@@ -58,7 +58,7 @@ export default function PublicProfilePage() {
 
   return (
     <div className="min-h-screen">
-      <PublicNav username={username} />
+      <PublicNav />
       <PublicProfileView profile={profileData} books={books} />
     </div>
   );

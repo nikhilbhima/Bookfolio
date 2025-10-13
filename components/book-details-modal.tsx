@@ -9,7 +9,7 @@ import {
 } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { StarRating } from "./star-rating";
-import { Calendar, BookOpen, Tag, Clock, X } from "lucide-react";
+import { Calendar, BookOpen, Tag, Clock } from "lucide-react";
 import Image from "next/image";
 
 interface BookDetailsModalProps {
@@ -25,7 +25,6 @@ export function BookDetailsModal({
   isOpen,
   onClose,
   onEdit,
-  isPublic = false,
 }: BookDetailsModalProps) {
   if (!book) return null;
 

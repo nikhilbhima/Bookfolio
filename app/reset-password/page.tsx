@@ -33,7 +33,7 @@ export default function ResetPasswordPage() {
         } else {
           setError("Invalid or expired reset link");
         }
-      } catch (err) {
+      } catch {
         setError("Failed to verify reset link");
       } finally {
         setCheckingToken(false);

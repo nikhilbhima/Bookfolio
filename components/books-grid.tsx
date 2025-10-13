@@ -80,8 +80,6 @@ export function BooksGrid() {
     const grid = gridRef.current;
     let draggedElement: HTMLElement | null = null;
     let ghostElement: HTMLElement | null = null;
-    let startX = 0;
-    let startY = 0;
     let offsetX = 0;
     let offsetY = 0;
     let draggedBookId: string | null = null;
@@ -106,8 +104,6 @@ export function BooksGrid() {
       const rect = bookCard.getBoundingClientRect();
       offsetX = e.clientX - rect.left;
       offsetY = e.clientY - rect.top;
-      startX = e.clientX;
-      startY = e.clientY;
 
       // Create ghost element
       ghostElement = bookCard.cloneNode(true) as HTMLElement;

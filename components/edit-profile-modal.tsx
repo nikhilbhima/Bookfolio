@@ -13,14 +13,12 @@ import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { Label } from "./ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { Camera, X, Plus, Edit, Trash2 } from "lucide-react";
+import { X, Plus, Edit, Trash2 } from "lucide-react";
 import { ImageCropModal } from "./image-crop-modal";
 import {
   SOCIAL_PLATFORMS,
   getPlatformById,
-  buildSocialUrl,
   extractValueFromUrl,
-  type SocialPlatform,
 } from "@/lib/social-platforms";
 import {
   Select,

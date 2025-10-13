@@ -282,7 +282,8 @@ export async function deleteBook(id: string) {
 /**
  * Update book order (placeholder for future drag-and-drop)
  */
-export async function updateBooksOrder(books: Array<{ id: string; customOrder: number }>) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function updateBooksOrder(_books: Array<{ id: string; customOrder: number }>) {
   // Not implemented yet - would need custom_order column in DB
   return true;
 }

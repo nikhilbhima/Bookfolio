@@ -4,11 +4,7 @@ import Link from "next/link";
 import { ThemeToggle } from "./theme-toggle";
 import { Logo } from "./logo";
 
-interface PublicNavProps {
-  username?: string;
-}
-
-export function PublicNav(_props: PublicNavProps) {
+export function PublicNav() {
   return (
     <nav className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-3 sm:px-4">

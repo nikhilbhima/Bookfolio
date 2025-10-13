@@ -163,7 +163,8 @@ export function ImageCropModal({
               className="absolute inset-0 w-full h-full"
             />
 
-            {/* Hidden image for loading */}
+            {/* Hidden image for loading - using <img> instead of Next Image for canvas manipulation */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               ref={imageRef}
               src={imageSrc}

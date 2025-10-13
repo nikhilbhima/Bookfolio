@@ -1,13 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Settings, Download, Upload, LogOut, Trash2, User } from "lucide-react";
+import { Settings, LogOut } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import { Button } from "./ui/button";
@@ -28,6 +26,8 @@ export function SettingsMenu() {
   const books = useBookStore((state) => state.books);
   const profile = useBookStore((state) => state.profile);
 
+  // Future feature: Export user data
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleExportData = () => {
     const data = {
       books,
@@ -48,6 +48,8 @@ export function SettingsMenu() {
     URL.revokeObjectURL(url);
   };
 
+  // Future feature: Import user data
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleImportData = () => {
     const input = document.createElement("input");
     input.type = "file";
@@ -68,13 +70,15 @@ export function SettingsMenu() {
 
         // This will be implemented with proper state management
         alert("Import functionality will be fully implemented in a future phase");
-      } catch (error) {
+      } catch {
         alert("Error reading import file");
       }
     };
     input.click();
   };
 
+  // Future feature: Clear all user data
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleClearAllData = () => {
     setShowClearDialog(true);
   };

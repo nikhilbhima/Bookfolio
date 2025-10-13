@@ -44,7 +44,7 @@ export function StarRating({
     setHoverRating(clampedRating);
   };
 
-  const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleClick = () => {
     if (readonly || !onRatingChange || hoverRating === null) return;
     onRatingChange(hoverRating);
   };
