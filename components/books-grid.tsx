@@ -89,6 +89,12 @@ export function BooksGrid() {
 
     const handleMouseDown = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
+
+      // Don't start drag if clicking on a button, checkbox, or interactive element
+      if (target.closest('button') || target.closest('[role="checkbox"]') || target.closest('input')) {
+        return;
+      }
+
       const bookCard = target.closest('[data-book-card]') as HTMLElement;
 
       if (!bookCard) return;

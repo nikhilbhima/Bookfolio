@@ -257,6 +257,9 @@ export function BookCard({ book, view, isPublic = false, isMoveMode = false }: B
           {isHovered && !isPublic && (
             <div className="absolute inset-0 bg-black/60 items-center justify-center gap-3 transition-all hidden sm:flex">
               <button
+                onMouseDown={(e) => {
+                  e.stopPropagation();
+                }}
                 onClick={(e) => {
                   e.stopPropagation();
                   setIsEditOpen(true);
@@ -268,6 +271,9 @@ export function BookCard({ book, view, isPublic = false, isMoveMode = false }: B
                 <Edit className="w-4 h-4 pointer-events-none" />
               </button>
               <button
+                onMouseDown={(e) => {
+                  e.stopPropagation();
+                }}
                 onClick={(e) => {
                   e.stopPropagation();
                   setIsDeleteOpen(true);
@@ -284,6 +290,12 @@ export function BookCard({ book, view, isPublic = false, isMoveMode = false }: B
           {isHovered && !isPublic && (
             <div className="absolute bottom-2 left-2 right-2 flex items-center justify-center gap-2 sm:hidden">
               <button
+                onMouseDown={(e) => {
+                  e.stopPropagation();
+                }}
+                onTouchStart={(e) => {
+                  e.stopPropagation();
+                }}
                 onClick={(e) => {
                   e.stopPropagation();
                   setIsEditOpen(true);
@@ -293,6 +305,12 @@ export function BookCard({ book, view, isPublic = false, isMoveMode = false }: B
                 <Edit className="w-3.5 h-3.5 mx-auto pointer-events-none" />
               </button>
               <button
+                onMouseDown={(e) => {
+                  e.stopPropagation();
+                }}
+                onTouchStart={(e) => {
+                  e.stopPropagation();
+                }}
                 onClick={(e) => {
                   e.stopPropagation();
                   setIsDeleteOpen(true);
