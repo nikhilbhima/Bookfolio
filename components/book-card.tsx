@@ -174,9 +174,32 @@ export function BookCard({ book, view, isPublic = false, onMoveStart, isMoveMode
   }
 
   // Grid View
+  // Add effect to close buttons when clicking outside on mobile
+  React.useEffect(() => {
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
+      if (isHovered && window.innerWidth < 640) {
+        const target = e.target as HTMLElement;
+        if (!target.closest('[data-book-card-content]')) {
+          setIsHovered(false);
+        }
+      }
+    };
+
+    if (isHovered) {
+      document.addEventListener('click', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [isHovered]);
+
   return (
     <>
       <Card
+        data-book-card-content
         className={`group relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-105 ${
           hoveredButton === 'edit' ? 'ring-2 ring-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.3)]' :
           hoveredButton === 'delete' ? 'ring-2 ring-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.3)]' : ''
@@ -203,8 +226,31 @@ export function BookCard({ book, view, isPublic = false, onMoveStart, isMoveMode
         <div
           className="relative aspect-[2/3] bg-muted cursor-pointer overflow-hidden rounded-t-lg"
           onClick={(e) => {
-            if (!(e.target as HTMLElement).closest('button') && !(e.target as HTMLElement).closest('[role="checkbox"]')) {
-              setIsDetailsOpen(true);
+            const target = e.target as HTMLElement;
+            // Check if clicking on a button
+            if (target.closest('button') || target.closest('[role="checkbox"]')) {
+              return;
+            }
+            // On mobile, first tap shows buttons, second tap opens details
+            if (window.innerWidth < 640) { // sm breakpoint
+              if (!isHovered) {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsHovered(true);
+                return;
+              }
+            }
+            setIsDetailsOpen(true);
+          }}
+          onTouchStart={(e) => {
+            const target = e.target as HTMLElement;
+            // Don't show hover state if clicking on buttons
+            if (target.closest('button') || target.closest('[role="checkbox"]')) {
+              return;
+            }
+            // Show buttons on touch
+            if (!isHovered) {
+              setIsHovered(true);
             }
           }}
         >
