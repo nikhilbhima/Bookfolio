@@ -225,32 +225,19 @@ export function BookCard({ book, view, isPublic = false, isMoveMode = false }: B
         <div
           className="relative aspect-[2/3] bg-muted cursor-pointer overflow-hidden rounded-t-lg"
           onClick={(e) => {
+            // Don't handle if clicking on a button - let button handle it
             const target = e.target as HTMLElement;
-            // Check if clicking on a button
             if (target.closest('button') || target.closest('[role="checkbox"]')) {
               return;
             }
             // On mobile, first tap shows buttons, second tap opens details
             if (window.innerWidth < 640) { // sm breakpoint
               if (!isHovered) {
-                e.preventDefault();
-                e.stopPropagation();
                 setIsHovered(true);
                 return;
               }
             }
             setIsDetailsOpen(true);
-          }}
-          onTouchStart={(e) => {
-            const target = e.target as HTMLElement;
-            // Don't show hover state if clicking on buttons
-            if (target.closest('button') || target.closest('[role="checkbox"]')) {
-              return;
-            }
-            // Show buttons on touch
-            if (!isHovered) {
-              setIsHovered(true);
-            }
           }}
         >
           {!imageError ? (
@@ -268,7 +255,7 @@ export function BookCard({ book, view, isPublic = false, isMoveMode = false }: B
           )}
 
           {isHovered && !isPublic && (
-            <div className="absolute inset-0 bg-black/60 items-center justify-center gap-3 transition-all pointer-events-auto hidden sm:flex">
+            <div className="absolute inset-0 bg-black/60 items-center justify-center gap-3 transition-all hidden sm:flex">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -276,9 +263,9 @@ export function BookCard({ book, view, isPublic = false, isMoveMode = false }: B
                 }}
                 onMouseEnter={() => setHoveredButton('edit')}
                 onMouseLeave={() => setHoveredButton(null)}
-                className="p-3 rounded-lg bg-blue-500/15 border border-blue-500/40 text-blue-400 hover:bg-blue-500/25 hover:border-blue-500/60 transition-all glow-blue-hover"
+                className="p-3 rounded-lg bg-blue-500/15 border border-blue-500/40 text-blue-400 hover:bg-blue-500/25 hover:border-blue-500/60 transition-all glow-blue-hover pointer-events-auto"
               >
-                <Edit className="w-4 h-4" />
+                <Edit className="w-4 h-4 pointer-events-none" />
               </button>
               <button
                 onClick={(e) => {
@@ -287,32 +274,32 @@ export function BookCard({ book, view, isPublic = false, isMoveMode = false }: B
                 }}
                 onMouseEnter={() => setHoveredButton('delete')}
                 onMouseLeave={() => setHoveredButton(null)}
-                className="p-3 rounded-lg bg-red-500/15 border border-red-500/40 text-red-400 hover:bg-red-500/25 hover:border-red-500/60 transition-all"
+                className="p-3 rounded-lg bg-red-500/15 border border-red-500/40 text-red-400 hover:bg-red-500/25 hover:border-red-500/60 transition-all pointer-events-auto"
               >
-                <Trash2 className="w-4 h-4" />
+                <Trash2 className="w-4 h-4 pointer-events-none" />
               </button>
             </div>
           )}
 
           {isHovered && !isPublic && (
-            <div className="absolute bottom-2 left-2 right-2 flex items-center justify-center gap-2 sm:hidden pointer-events-auto">
+            <div className="absolute bottom-2 left-2 right-2 flex items-center justify-center gap-2 sm:hidden">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   setIsEditOpen(true);
                 }}
-                className="flex-1 p-2 rounded-lg bg-blue-500/90 backdrop-blur-sm border border-blue-400/60 text-white hover:bg-blue-600 transition-all shadow-lg"
+                className="flex-1 p-2 rounded-lg bg-blue-500/90 backdrop-blur-sm border border-blue-400/60 text-white hover:bg-blue-600 transition-all shadow-lg pointer-events-auto"
               >
-                <Edit className="w-3.5 h-3.5 mx-auto" />
+                <Edit className="w-3.5 h-3.5 mx-auto pointer-events-none" />
               </button>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   setIsDeleteOpen(true);
                 }}
-                className="flex-1 p-2 rounded-lg bg-red-500/90 backdrop-blur-sm border border-red-400/60 text-white hover:bg-red-600 transition-all shadow-lg"
+                className="flex-1 p-2 rounded-lg bg-red-500/90 backdrop-blur-sm border border-red-400/60 text-white hover:bg-red-600 transition-all shadow-lg pointer-events-auto"
               >
-                <Trash2 className="w-3.5 h-3.5 mx-auto" />
+                <Trash2 className="w-3.5 h-3.5 mx-auto pointer-events-none" />
               </button>
             </div>
           )}
