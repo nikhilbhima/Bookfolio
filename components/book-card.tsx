@@ -251,23 +251,9 @@ export function BookCard({ book, view, isPublic = false, onMoveStart, isMoveMode
               {onMoveStart && (
                 <button
                   onTouchStart={(e) => {
-                    e.stopPropagation();
-                    // Enable dragging from this button
-                    const touch = e.touches[0];
-                    const bookCard = (e.currentTarget as HTMLElement).closest('[data-book-card]') as HTMLElement;
-                    if (bookCard) {
-                      const touchEvent = new TouchEvent('touchstart', {
-                        touches: [touch],
-                        bubbles: true,
-                        cancelable: true,
-                      });
-                      bookCard.dispatchEvent(touchEvent);
-                    }
+                    // Don't stop propagation - let it bubble to the grid for drag handling
                   }}
-                  onMouseDown={(e) => {
-                    e.stopPropagation();
-                  }}
-                  className="flex-1 p-2 rounded-lg bg-purple-500/90 backdrop-blur-sm border border-purple-400/60 text-white hover:bg-purple-600 transition-all shadow-lg touch-none"
+                  className="flex-1 p-2 rounded-lg bg-purple-500/90 backdrop-blur-sm border border-purple-400/60 text-white hover:bg-purple-600 transition-all shadow-lg"
                 >
                   <Move className="w-3.5 h-3.5 mx-auto" />
                 </button>
