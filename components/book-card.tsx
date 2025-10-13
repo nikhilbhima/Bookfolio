@@ -210,11 +210,11 @@ export function BookCard({ book, view, isPublic = false, onMoveStart, isMoveMode
             }
           }}
           onTouchStart={(e) => {
-            // Start timer for long press (1 second)
+            // Start timer for long press (1.5 seconds)
             longPressTimerRef.current = setTimeout(() => {
               setIsLongPress(true);
               setIsHovered(true); // Show buttons including move
-            }, 1000);
+            }, 1500);
           }}
           onTouchMove={() => {
             // Cancel long press if finger moves
