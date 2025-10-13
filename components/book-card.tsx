@@ -199,19 +199,6 @@ export function BookCard({ book, view, isPublic = false, onMoveStart, isMoveMode
           </div>
         )}
 
-        {!isPublic && onMoveStart && (
-          <div
-            className="absolute top-2 right-2 z-10 sm:hidden"
-            onClick={(e) => {
-              e.stopPropagation();
-              onMoveStart();
-            }}
-          >
-            <div className="p-2 rounded-lg backdrop-blur-sm transition-all shadow-lg bg-background/90 border-2 border-border cursor-grab active:cursor-grabbing">
-              <Move className="w-4 h-4 text-foreground" />
-            </div>
-          </div>
-        )}
 
         <div className="relative aspect-[2/3] bg-muted cursor-pointer overflow-hidden rounded-t-lg" onClick={(e) => {
           if (!(e.target as HTMLElement).closest('button') && !(e.target as HTMLElement).closest('[role="checkbox"]')) {
@@ -261,6 +248,30 @@ export function BookCard({ book, view, isPublic = false, onMoveStart, isMoveMode
 
           {isHovered && !isPublic && (
             <div className="absolute bottom-2 left-2 right-2 flex items-center justify-center gap-2 sm:hidden pointer-events-auto">
+              {onMoveStart && (
+                <button
+                  onTouchStart={(e) => {
+                    e.stopPropagation();
+                    // Enable dragging from this button
+                    const touch = e.touches[0];
+                    const bookCard = (e.currentTarget as HTMLElement).closest('[data-book-card]') as HTMLElement;
+                    if (bookCard) {
+                      const touchEvent = new TouchEvent('touchstart', {
+                        touches: [touch],
+                        bubbles: true,
+                        cancelable: true,
+                      });
+                      bookCard.dispatchEvent(touchEvent);
+                    }
+                  }}
+                  onMouseDown={(e) => {
+                    e.stopPropagation();
+                  }}
+                  className="flex-1 p-2 rounded-lg bg-purple-500/90 backdrop-blur-sm border border-purple-400/60 text-white hover:bg-purple-600 transition-all shadow-lg touch-none"
+                >
+                  <Move className="w-3.5 h-3.5 mx-auto" />
+                </button>
+              )}
               <button
                 onClick={(e) => {
                   e.stopPropagation();

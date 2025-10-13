@@ -232,14 +232,50 @@ export function BooksGrid() {
       startIndex = -1;
     };
 
+    // Touch event handlers for mobile drag
+    const handleTouchStart = (e: TouchEvent) => {
+      const touch = e.touches[0];
+      handleMouseDown({
+        clientX: touch.clientX,
+        clientY: touch.clientY,
+        target: e.target,
+        preventDefault: () => e.preventDefault(),
+      } as unknown as MouseEvent);
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (!draggedElement || !ghostElement) return;
+      e.preventDefault(); // Prevent scrolling while dragging
+      const touch = e.touches[0];
+      handleMouseMove({
+        clientX: touch.clientX,
+        clientY: touch.clientY,
+      } as unknown as MouseEvent);
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      if (!draggedElement || !ghostElement) return;
+      const touch = e.changedTouches[0];
+      handleMouseUp({
+        clientX: touch.clientX,
+        clientY: touch.clientY,
+      } as unknown as MouseEvent);
+    };
+
     grid.addEventListener('mousedown', handleMouseDown);
+    grid.addEventListener('touchstart', handleTouchStart, { passive: false });
     document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('touchmove', handleTouchMove, { passive: false });
     document.addEventListener('mouseup', handleMouseUp);
+    document.addEventListener('touchend', handleTouchEnd);
 
     return () => {
       grid.removeEventListener('mousedown', handleMouseDown);
+      grid.removeEventListener('touchstart', handleTouchStart);
       document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('touchmove', handleTouchMove);
       document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('touchend', handleTouchEnd);
     };
   }, [isDragEnabled, books, currentBooks, reorderBooks]);
 
