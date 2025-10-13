@@ -113,7 +113,7 @@ export function BooksGrid() {
       ghostElement.style.height = `${rect.height}px`;
       ghostElement.style.pointerEvents = 'none';
       ghostElement.style.zIndex = '1000';
-      ghostElement.style.transform = 'scale(1.15)';
+      ghostElement.style.transform = 'scale(1.05)';
       ghostElement.style.filter = 'drop-shadow(0 30px 60px rgba(0, 0, 0, 0.5)) brightness(1.1)';
       ghostElement.style.transition = 'none';
       document.body.appendChild(ghostElement);

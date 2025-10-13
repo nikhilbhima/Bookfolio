@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { Edit, Trash2, Maximize2, Move } from "lucide-react";
 import { Book } from "@/lib/mock-data";
 import { useBookStore } from "@/lib/store";
@@ -27,6 +27,8 @@ export function BookCard({ book, view, isPublic = false, onMoveStart, isMoveMode
   const [isHovered, setIsHovered] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [hoveredButton, setHoveredButton] = useState<'edit' | 'delete' | null>(null);
+  const [isLongPress, setIsLongPress] = useState(false);
+  const longPressTimerRef = React.useRef<NodeJS.Timeout | null>(null);
   const filter = useBookStore((state) => state.filter);
   const selectionMode = useBookStore((state) => state.selectionMode);
   const selectedBooks = useBookStore((state) => state.selectedBooks);
@@ -200,11 +202,41 @@ export function BookCard({ book, view, isPublic = false, onMoveStart, isMoveMode
         )}
 
 
-        <div className="relative aspect-[2/3] bg-muted cursor-pointer overflow-hidden rounded-t-lg" onClick={(e) => {
-          if (!(e.target as HTMLElement).closest('button') && !(e.target as HTMLElement).closest('[role="checkbox"]')) {
-            setIsDetailsOpen(true);
-          }
-        }}>
+        <div
+          className="relative aspect-[2/3] bg-muted cursor-pointer overflow-hidden rounded-t-lg"
+          onClick={(e) => {
+            if (!(e.target as HTMLElement).closest('button') && !(e.target as HTMLElement).closest('[role="checkbox"]')) {
+              setIsDetailsOpen(true);
+            }
+          }}
+          onTouchStart={(e) => {
+            // Start timer for long press (1 second)
+            longPressTimerRef.current = setTimeout(() => {
+              setIsLongPress(true);
+              setIsHovered(true); // Show buttons including move
+            }, 1000);
+          }}
+          onTouchMove={() => {
+            // Cancel long press if finger moves
+            if (longPressTimerRef.current) {
+              clearTimeout(longPressTimerRef.current);
+              longPressTimerRef.current = null;
+            }
+          }}
+          onTouchEnd={() => {
+            // If timer is still active, it's a tap (not long press)
+            if (longPressTimerRef.current) {
+              clearTimeout(longPressTimerRef.current);
+              longPressTimerRef.current = null;
+              // Show buttons but not move button (normal tap)
+              if (!isLongPress) {
+                setIsHovered(true);
+              }
+            }
+            // Reset long press state after a delay
+            setTimeout(() => setIsLongPress(false), 100);
+          }}
+        >
           {!imageError ? (
             <Image
               src={book.cover}
@@ -248,7 +280,7 @@ export function BookCard({ book, view, isPublic = false, onMoveStart, isMoveMode
 
           {isHovered && !isPublic && (
             <div className="absolute bottom-2 left-2 right-2 flex items-center justify-center gap-2 sm:hidden pointer-events-auto">
-              {onMoveStart && (
+              {onMoveStart && isLongPress && (
                 <button
                   onTouchStart={(e) => {
                     // Don't stop propagation - let it bubble to the grid for drag handling
