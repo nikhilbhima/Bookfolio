@@ -22,8 +22,8 @@ export function BooksGrid() {
   const [movingBookId, setMovingBookId] = useState<string | null>(null);
   const [targetPosition, setTargetPosition] = useState<number | null>(null);
 
-  // Check if drag should be enabled
-  const isDragEnabled = filter === "all" && !searchQuery && sortBy === "newest" && view === "grid";
+  // Check if drag should be enabled (disabled only for search and custom sorts)
+  const isDragEnabled = !searchQuery && sortBy === "newest" && view === "grid";
 
   // Compute filtered books
   const filteredBooks = React.useMemo(() => {
@@ -252,7 +252,7 @@ export function BooksGrid() {
         <div className="flex items-center gap-2">
           {!isDragEnabled && view === "grid" && (
             <p className="text-xs text-muted-foreground">
-              Drag disabled when filters/search/sort are active
+              Drag disabled when search or custom sort is active
             </p>
           )}
         </div>
