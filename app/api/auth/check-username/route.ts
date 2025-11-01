@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
   if (!validation.success) {
     return NextResponse.json({
       available: false,
-      error: validation.error.errors[0].message,
+      error: validation.error.issues[0].message,
     }, { status: 400 });
   }
 

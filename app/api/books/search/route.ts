@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
   const validation = searchQuerySchema.safeParse({ q: query });
   if (!validation.success) {
     return NextResponse.json(
-      { error: validation.error.errors[0].message },
+      { error: validation.error.issues[0].message },
       { status: 400 }
     );
   }

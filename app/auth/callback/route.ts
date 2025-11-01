@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
     )
 
     // Check if profile exists using maybeSingle to avoid errors
-    const { data: profile, error: profileFetchError } = await adminClient
+    const { data: profile } = await adminClient
       .from('profiles')
       .select('username')
       .eq('user_id', user.id)
