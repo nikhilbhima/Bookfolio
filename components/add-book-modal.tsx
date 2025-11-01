@@ -261,6 +261,7 @@ export function AddBookModal({ isOpen, onClose, bookToEdit }: AddBookModalProps)
                               alt={book.title}
                               fill
                               className="object-cover"
+                              unoptimized
                             />
                           </div>
                         ) : (
@@ -355,6 +356,7 @@ export function AddBookModal({ isOpen, onClose, bookToEdit }: AddBookModalProps)
                             width={160}
                             height={240}
                             className="rounded-lg object-cover"
+                            unoptimized
                           />
                           <button
                             type="button"

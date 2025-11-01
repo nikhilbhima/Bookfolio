@@ -103,6 +103,7 @@ export function BookCard({ book, view, isPublic = false, isMoveMode = false }: B
                   fill
                   className="object-cover"
                   onError={() => setImageError(true)}
+                  unoptimized
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-[10px] sm:text-xs text-muted-foreground">
@@ -247,6 +248,7 @@ export function BookCard({ book, view, isPublic = false, isMoveMode = false }: B
               fill
               className="object-cover"
               onError={() => setImageError(true)}
+              unoptimized
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-muted-foreground">
