@@ -73,34 +73,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (error) {
-      // Check if user exists but signed up with OAuth
-      if (error.message.includes('Invalid login credentials') || error.message.includes('Email not confirmed')) {
-        const adminClient = createClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.SUPABASE_SERVICE_ROLE_KEY!,
-          {
-            auth: {
-              autoRefreshToken: false,
-              persistSession: false
-            }
-          }
-        );
-
-        // Use getUserByEmail instead of listing all users (performance fix)
-        const { data: existingUser } = await adminClient.auth.admin.getUserByEmail(email);
-
-        if (existingUser?.user && existingUser.user.app_metadata.provider === 'google') {
-          return NextResponse.json(
-            {
-              error: 'This account was created with Google. Please use "Continue with Google" to sign in.',
-              isGoogleAccount: true
-            },
-            { status: 401 }
-          );
-        }
-      }
-
-      // Return generic error message for security
+      // Return generic error message for security (don't reveal if account exists)
       return NextResponse.json(
         { error: 'Invalid login credentials' },
         { status: 401 }
