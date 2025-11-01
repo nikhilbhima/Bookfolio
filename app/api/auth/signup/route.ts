@@ -1,26 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient as createServerClient } from '@/lib/supabase-server';
 import { createClient } from '@supabase/supabase-js';
+import { signupSchema } from '@/lib/validations';
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, password, username } = await request.json();
+    const body = await request.json();
 
-    if (!email || !password || !username) {
+    // Validate input with Zod
+    const validation = signupSchema.safeParse(body);
+    if (!validation.success) {
       return NextResponse.json(
-        { error: 'Email, password, and username are required' },
+        { error: validation.error.errors[0].message },
         { status: 400 }
       );
     }
 
-    // Validate username format
-    const usernameRegex = /^[a-z0-9_-]{3,20}$/;
-    if (!usernameRegex.test(username.toLowerCase())) {
-      return NextResponse.json(
-        { error: 'Invalid username format' },
-        { status: 400 }
-      );
-    }
+    const { email, password, username } = validation.data;
 
     // Use service role client for username check and profile creation
     const adminClient = createClient(
@@ -50,12 +46,6 @@ export async function POST(request: NextRequest) {
 
     // Use server client for auth signup to set cookies properly
     const supabase = await createServerClient();
-
-    console.log('[SIGNUP] Environment check:', {
-      hasUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
-      hasAnonKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-      urlPrefix: process.env.NEXT_PUBLIC_SUPABASE_URL?.substring(0, 30)
-    });
 
     // Sign up the user
     const { data: authData, error: authError } = await supabase.auth.signUp({

@@ -10,7 +10,6 @@ export async function GET(request: NextRequest) {
   const origin = requestUrl.origin
 
   if (!code) {
-    console.error('[AUTH CALLBACK] No code provided')
     return NextResponse.redirect(`${origin}/login?error=no_code`)
   }
 
@@ -39,12 +38,10 @@ export async function GET(request: NextRequest) {
     const { data: sessionData, error: sessionError } = await supabase.auth.exchangeCodeForSession(code)
 
     if (sessionError || !sessionData?.user) {
-      console.error('[AUTH CALLBACK] Session exchange failed:', sessionError)
       return NextResponse.redirect(`${origin}/login?error=session_failed`)
     }
 
     const user = sessionData.user
-    console.log('[AUTH CALLBACK] User authenticated:', user.id)
 
     // Use service role client for profile operations
     const adminClient = createClient(
@@ -65,13 +62,8 @@ export async function GET(request: NextRequest) {
       .eq('user_id', user.id)
       .maybeSingle()
 
-    if (profileFetchError) {
-      console.error('[AUTH CALLBACK] Profile fetch error:', profileFetchError)
-    }
-
     // If no profile exists, create one
     if (!profile) {
-      console.log('[AUTH CALLBACK] No profile found, creating new profile')
 
       const displayName = user.user_metadata?.full_name ||
                          user.user_metadata?.name ||
@@ -82,8 +74,21 @@ export async function GET(request: NextRequest) {
       const pendingUsername = cookieStore.get('pending_username')?.value
 
       if (!pendingUsername) {
-        console.error('[AUTH CALLBACK] No pending username found')
         return NextResponse.redirect(`${origin}/login?error=no_username`)
+      }
+
+      // Re-check username availability to prevent race condition
+      const { data: existingUsername } = await adminClient
+        .from('profiles')
+        .select('username')
+        .ilike('username', pendingUsername)
+        .maybeSingle()
+
+      let finalUsername = pendingUsername.toLowerCase()
+
+      // If username was taken, generate a unique one
+      if (existingUsername) {
+        finalUsername = `${pendingUsername.toLowerCase()}_${Date.now().toString().slice(-6)}`
       }
 
       // Create profile
@@ -91,7 +96,7 @@ export async function GET(request: NextRequest) {
         .from('profiles')
         .insert({
           user_id: user.id,
-          username: pendingUsername.toLowerCase(),
+          username: finalUsername,
           name: displayName,
           bio: '',
           profile_photo: user.user_metadata?.avatar_url ||
@@ -101,21 +106,18 @@ export async function GET(request: NextRequest) {
         })
 
       if (insertError) {
-        console.error('[AUTH CALLBACK] Profile creation error:', insertError)
+        console.error('[AUTH CALLBACK] Profile creation error:', insertError.message)
         return NextResponse.redirect(`${origin}/login?error=profile_creation_failed`)
       }
-
-      console.log('[AUTH CALLBACK] Profile created successfully')
 
       // Clear the pending username cookie
       cookieStore.delete('pending_username')
     }
 
-    console.log('[AUTH CALLBACK] Redirecting to dashboard')
     return NextResponse.redirect(`${origin}/dashboard`)
 
   } catch (error) {
-    console.error('[AUTH CALLBACK] Unexpected error:', error)
+    console.error('[AUTH CALLBACK] Unexpected error:', error instanceof Error ? error.message : 'Unknown error')
     return NextResponse.redirect(`${origin}/login?error=unexpected`)
   }
 }

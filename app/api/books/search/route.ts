@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { searchQuerySchema } from "@/lib/validations";
 
 interface GoogleBooksVolumeInfo {
   title?: string;
@@ -55,16 +56,22 @@ export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const query = searchParams.get("q");
 
-  if (!query) {
-    return NextResponse.json({ error: "Query parameter is required" }, { status: 400 });
+  // Validate query with Zod
+  const validation = searchQuerySchema.safeParse({ q: query });
+  if (!validation.success) {
+    return NextResponse.json(
+      { error: validation.error.errors[0].message },
+      { status: 400 }
+    );
   }
 
   const apiKey = process.env.GOOGLE_BOOKS_API_KEY;
+  const validatedQuery = validation.data.q;
 
   try {
     // Search Google Books API
     const googleBooksUrl = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(
-      query
+      validatedQuery
     )}&maxResults=40&printType=books&orderBy=relevance${apiKey ? `&key=${apiKey}` : ""}`;
 
     const googleResponse = await fetch(googleBooksUrl);
@@ -117,7 +124,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Sort by relevance: exact matches first, then by popularity
-    const queryLower = query.toLowerCase();
+    const queryLower = validatedQuery.toLowerCase();
     const sortedGoogleResults = transformedGoogleResults.sort((a, b) => {
       const titleA = a.title.toLowerCase();
       const titleB = b.title.toLowerCase();
@@ -149,7 +156,7 @@ export async function GET(request: NextRequest) {
 
     // Otherwise, fetch OpenLibrary results
     const openLibraryUrl = `https://openlibrary.org/search.json?q=${encodeURIComponent(
-      query
+      validatedQuery
     )}&limit=40&sort=editions`;
 
     const openLibraryResponse = await fetch(openLibraryUrl);
